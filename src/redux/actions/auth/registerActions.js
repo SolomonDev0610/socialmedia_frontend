@@ -58,7 +58,7 @@ export const signupWithFirebase = (email, password, name) => {
 export const signupWithJWT = (username, password, political_party) => {
 
   return dispatch => {
-    axios.post("http://localhost:8000/api/register", {
+    axios.post(global.config.server_url + "/register", {
         username: username,
         password: password,
         political_party: political_party,

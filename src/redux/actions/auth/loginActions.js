@@ -187,7 +187,7 @@ export const loginWithGithub = () => {
 export const loginWithJWT = user => {
   return dispatch => {
     axios
-      .post("http://localhost:8000/api/token", {
+      .post(global.config.server_url +"/token", {
         username: user.username,
         password: user.password
       })
