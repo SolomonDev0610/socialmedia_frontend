@@ -55,40 +55,31 @@ export const signupWithFirebase = (email, password, name) => {
   }
 }
 
-export const signupWithJWT = (email, password, first_name, last_name) => {
+export const signupWithJWT = (username, password, political_party) => {
+
   return dispatch => {
     axios.post("http://localhost:8000/api/register", {
-        email: email,
+        username: username,
         password: password,
-        name: first_name + " " + last_name,
+        political_party: political_party,
       })
       .then(response => {
-        axios
-            .post("http://localhost:8000/api/personal_information", {
-              user_id: 10,
-              first_name: first_name,
-              last_name: last_name
-            })
-            .then(response => {
-              toast.info("Utilisateur enregistré");
-            })
-            .catch(error => {
-              console.log(error);
-              toast.error("API injoignable.")
-            })
-        var loggedInUser
-
+        console.log("--------- register ----------");
+        console.log(response.data);
         if(response.data){
-          loggedInUser = response.data.user
+          var loggedInUser = response.data.user;
 
-          localStorage.setItem("token", response.data.accessToken)
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("user_id", response.data.user.id);
+          localStorage.setItem("username", response.data.user.username);
+          localStorage.setItem("political_party", response.data.user.political_party);
 
           dispatch({
             type: "LOGIN_WITH_JWT",
             payload: { loggedInUser, loggedInWith: "jwt" }
           })
 
-          history.push("/")
+          history.push("/pages/home")
         }
 
       })

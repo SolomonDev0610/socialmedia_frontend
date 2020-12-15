@@ -7,7 +7,7 @@ const navigationConfig = [
     title: "Dashboard",
     type: "item",
     icon: <Icon.Home size={20}/>,
-    permissions: ["admin", "user"],
+    permissions: [],
     navLink: "/"
     //badge: "warning",
     //badgeText: "2"
@@ -17,7 +17,7 @@ const navigationConfig = [
     title: "Utilisateurs",
     type: "item",
     icon: <Icon.Monitor size={20}/>,
-    permissions: ["admin", "user"],
+    permissions: [],
     navLink: "/app/user/conslist"
     //badge: "warning",
     //badgeText: "2"
@@ -27,7 +27,7 @@ const navigationConfig = [
     title: "Modèle de contrat",
     type: "item",
     icon: <Icon.List size={20}/>,
-    permissions: ["admin", "user"],
+    permissions: [],
     navLink: "/app/contractTemplate"
     //badge: "warning",
     //badgeText: "2"
@@ -37,7 +37,7 @@ const navigationConfig = [
     title: "Contrats",
     type: "item",
     icon: <Icon.Folder size={20}/>,
-    permissions: ["admin", "user"],
+    permissions: [],
     navLink: "/app/AllDocuments"
     //badge: "warning",
     //badgeText: "2"

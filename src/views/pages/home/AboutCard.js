@@ -1,8 +1,9 @@
 import React from "react"
 import { Card, CardHeader, CardTitle, CardBody, Button } from "reactstrap"
 import { MoreHorizontal, Facebook, Instagram, Twitter } from "react-feather"
-
+const political_party = localStorage.getItem("political_party");
 class AboutCard extends React.Component {
+
   render() {
     return (
       <Card>
@@ -12,24 +13,15 @@ class AboutCard extends React.Component {
         </CardHeader>
         <CardBody>
           <p>
-            Tart I love sugar plum I love oat cake. Sweet roll caramels I love
-            jujubes. Topping cake wafer.
+            {localStorage.getItem('username')}
           </p>
           <div className="mt-1">
-            <h6 className="mb-0">Joined:</h6>
-            <p>November 15, 2015</p>
+            <h6 className="mb-0">Political Party:</h6>
+            <p>{political_party == 1?"Republican":"Democrat"}</p>
           </div>
           <div className="mt-1">
-            <h6 className="mb-0">Lives:</h6>
-            <p>New York, USA</p>
-          </div>
-          <div className="mt-1">
-            <h6 className="mb-0">Email:</h6>
-            <p>bucketful@fiendhead.org</p>
-          </div>
-          <div className="mt-1">
-            <h6 className="mb-0">Website:</h6>
-            <p>www.pixinvent.com</p>
+            <h6 className="mb-0">Total Earned Point:</h6>
+            <p>5012</p>
           </div>
           <div className="mt-1">
             <Button color="primary" size="sm" className="btn-icon mr-25 p-25">

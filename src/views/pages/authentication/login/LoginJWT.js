@@ -13,8 +13,8 @@ toast.configure();
 
 class LoginJWT extends React.Component {
   state = {
-    email: "demo@demo.com",
-    password: "12345678",
+    username: "GoldenVote01",
+    password: "123qwe",
     remember: false
   }
 
@@ -30,8 +30,8 @@ class LoginJWT extends React.Component {
           <Form action="/" onSubmit={this.handleLogin}>
             <FormGroup className="form-label-group position-relative has-icon-left">
               <Input
-                type="email"
-                placeholder="Email"
+                type="text"
+                placeholder="Username"
                 value={this.state.email}
                 onChange={e => this.setState({ email: e.target.value })}
                 required
@@ -39,7 +39,7 @@ class LoginJWT extends React.Component {
               <div className="form-control-position">
                 <Mail size={15} />
               </div>
-              <Label>Email</Label>
+              <Label>Username</Label>
             </FormGroup>
             <FormGroup className="form-label-group position-relative has-icon-left">
               <Input
@@ -52,21 +52,21 @@ class LoginJWT extends React.Component {
               <div className="form-control-position">
                 <Lock size={15} />
               </div>
-              <Label>Mot de passe</Label>
+              <Label>Password</Label>
             </FormGroup>
             <FormGroup className="d-flex justify-content-between align-items-center">
               <Checkbox
                 color="primary"
                 icon={<Check className="vx-icon" size={16} />}
-                label="Se souvenir de moi"
+                label="Remember me"
                 defaultChecked={false}
                 onChange={this.handleRemember}
               />
               <div className="float-right">
-                <Link to="/pages/forgot-password">Mot de passe oublié ?</Link>
+                <Link to="/pages/forgot-password">Forgot your password?</Link>
               </div>
             </FormGroup>
-            <div className="d-flex justify-content-between">
+            <div className="d-flex justify-content-between" style={{width:'65%'}}>
               <Button.Ripple
                 color="primary"
                 outline
@@ -74,10 +74,10 @@ class LoginJWT extends React.Component {
                   history.push("/pages/register")
                 }}
               >
-                Créer un compte
+                Register
               </Button.Ripple>
               <Button.Ripple color="primary" type="submit">
-                S'identifier
+                Login
               </Button.Ripple>
             </div>
           </Form>

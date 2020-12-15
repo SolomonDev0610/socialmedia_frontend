@@ -147,7 +147,7 @@ export const loginWithGoogle = () => {
             loggedInWith: "firebase"
           }
         })
-        history.push("/")
+        history.push("/pages/profile")
       })
       .catch(function(error) {
         console.log(error)
@@ -187,23 +187,25 @@ export const loginWithGithub = () => {
 export const loginWithJWT = user => {
   return dispatch => {
     axios
-      .post("http://localhost:8000/api/login", {
-        email: user.email,
+      .post("http://localhost:8000/api/token", {
+        username: user.username,
         password: user.password
       })
       .then(response => {
         var loggedInUser
         if (response.data && !response.data.error) {
           loggedInUser = response.data.user
-
-          localStorage.setItem("token", response.data.accessToken)
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("user_id", response.data.user.id);
+          localStorage.setItem("username", response.data.user.username);
+          localStorage.setItem("political_party", response.data.user.political_party);
 
           dispatch({
             type: "LOGIN_WITH_JWT",
             payload: { loggedInUser, loggedInWith: "jwt"}
           })
           dispatch({type: "CHANGE_ROLE", userRole: response.data.user.role})
-          history.push("/")
+          history.push("/pages/home")
         }
       })
       .catch(error => {

@@ -265,14 +265,14 @@ class VerticalLayout extends PureComponent {
           }
         )}
       >
-        <Sidebar {...sidebarProps} />
+        <Navbar {...navbarProps} style={{marginRight:'auto', marginLeft:'auto'}}/>
         <div
           className={classnames("app-content content", {
             "show-overlay": this.state.appOverlay === true
           })}
           onClick={this.handleAppOverlayClick}
         >
-          <Navbar {...navbarProps} />
+
           <div className="content-wrapper">{this.props.children}</div>
         </div>
 

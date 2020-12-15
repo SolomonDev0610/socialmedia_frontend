@@ -124,7 +124,7 @@ const ReactTables = lazy(() =>
 )
 const Aggrid = lazy(() => import("./views/tables/aggrid/Aggrid"))
 const DataTable = lazy(() => import("./views/tables/data-tables/DataTables"))
-const profile = lazy(() => import("./views/pages/profile/Profile"))
+const home = lazy(() => import("./views/pages/home"))
 const faq = lazy(() => import("./views/pages/faq/FAQ"))
 const knowledgeBase = lazy(() =>
   import("./views/pages/knowledge-base/KnowledgeBase")
@@ -229,7 +229,7 @@ class AppRouter extends React.Component {
   render() {
     return (
       // Set the directory path if you are deploying in sub-folder
-      <Router history={history} basename={'/user_manage'}>
+      <Router history={history} basename={'/vote_socialmedia'}>
         <Switch>
           <AppRoute exact path="/" component={analyticsDashboard} />
           <AppRoute
@@ -327,7 +327,7 @@ class AppRouter extends React.Component {
           <AppRoute path="/tables/react-tables" component={ReactTables} />
           <AppRoute path="/tables/agGrid" component={Aggrid} />
           <AppRoute path="/tables/data-tables" component={DataTable} />
-          <AppRoute path="/pages/profile" component={profile} />
+          <AppRoute path="/pages/home" component={home} />
           <AppRoute path="/pages/faq" component={faq} />
           <AppRoute
             path="/pages/knowledge-base"

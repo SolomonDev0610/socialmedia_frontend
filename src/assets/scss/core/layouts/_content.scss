@@ -1,15 +1,23 @@
-// ================================================================================================
-//     File Name: content.scss
-//     Description: Page content level SCSS for different screen size, layout and device.
-//     ----------------------------------------------------------------------------------------------
-//     Item Name: Vuexy React Admin Template
-//     Version: 1.0
-//     Author: PIXINVENT
-//     Authuseror URL: http://www.themeforest.net//pixinvent
-// ================================================================================================
 
-// Contest margin left for expanded & collapsed stats width & margin left
-// ================================================================================================
+@media (min-width: 1200px) {
+  html {
+    body {
+      .content {
+        width:70%;
+      }
+    }
+  }
+}
+@media (max-width: 1200px) {
+  html {
+    body {
+      .content {
+        width:95%;
+      }
+    }
+  }
+}
+
 html {
   font-size: $base-font-size;
   height: 100%;
@@ -24,7 +32,9 @@ html {
       transition: 300ms ease all;
       backface-visibility: hidden;
       min-height: calc(100% - 4rem);
-      margin-left: $menu-expanded-width;
+      margin-left:auto!important;
+      margin-right:auto!important;
+      //margin-left: $menu-expanded-width;
       &.app-content {
         overflow: hidden;
         &.show-overlay {

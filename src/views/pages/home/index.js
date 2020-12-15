@@ -4,15 +4,12 @@ import Breadcrumbs from "../../../components/@vuexy/breadCrumbs/BreadCrumb"
 import ProfileHeader from "./ProfileHeader"
 import AboutCard from "./AboutCard"
 import SuggestedPages from "./SuggestedPages"
-import TwitterFeed from "./TwitterFeeds"
 import Posts from "./Posts"
-import LatestPhotos from "./LatestPhotos"
-import Suggestions from "./Suggestions"
-import Polls from "./Polls"
+import PostCreator from "./PostCreator"
 
 import "../../../assets/scss/pages/users-profile.scss"
 
-class Profile extends React.Component {
+class Index extends React.Component {
   state = {
     isLoading: false
   }
@@ -33,9 +30,8 @@ class Profile extends React.Component {
     return (
       <React.Fragment>
         <Breadcrumbs
-          breadCrumbTitle="Profile"
-          breadCrumbParent="Pages"
-          breadCrumbActive="Profile"
+          breadCrumbTitle="Home"
+          breadCrumbParent="posts"
         />
         <div id="user-profile">
           <Row>
@@ -48,16 +44,15 @@ class Profile extends React.Component {
               <Col lg="3" md="12">
                 <AboutCard />
                 <SuggestedPages />
-                <TwitterFeed />
               </Col>
-              <Col lg="6" md="12">
+              <Col lg="9" md="12">
+                <PostCreator />
                 <Posts />
               </Col>
-              <Col lg="3" md="12">
-                <LatestPhotos />
-                <Suggestions />
-                <Polls />
-              </Col>
+              {/*<Col lg="3" md="12">*/}
+              {/*  <LatestPhotos />*/}
+              {/*  <Suggestions />*/}
+              {/*</Col>*/}
             </Row>
             <Row>
               <Col sm="12" className="text-center">
@@ -80,4 +75,4 @@ class Profile extends React.Component {
   }
 }
 
-export default Profile
+export default Index

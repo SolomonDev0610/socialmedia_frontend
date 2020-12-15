@@ -29,44 +29,7 @@ const UserDropdown = props => {
     <DropdownMenu right>
       <DropdownItem
         tag="a"
-        href="#"
-        onClick={e => handleNavigation(e, "/pages/profile")}
-      >
-        <Icon.User size={14} className="mr-50" />
-        <span className="align-middle">Edit Profile</span>
-      </DropdownItem>
-      <DropdownItem
-        tag="a"
-        href="#"
-        onClick={e => handleNavigation(e, "/email/inbox")}
-      >
-        <Icon.Mail size={14} className="mr-50" />
-        <span className="align-middle">My Inbox</span>
-      </DropdownItem>
-      <DropdownItem
-        tag="a"
-        href="#"
-        onClick={e => handleNavigation(e, "/todo/all")}
-      >
-        <Icon.CheckSquare size={14} className="mr-50" />
-        <span className="align-middle">Tasks</span>
-      </DropdownItem>
-      <DropdownItem
-        tag="a"
-        href="#"
-        onClick={e => handleNavigation(e, "/chat")}
-      >
-        <Icon.MessageSquare size={14} className="mr-50" />
-        <span className="align-middle">Chats</span>
-      </DropdownItem>
-      <DropdownItem tag="a" href="#" onClick={e => handleNavigation(e, "/ecommerce/wishlist")}>
-        <Icon.Heart size={14} className="mr-50" />
-        <span className="align-middle">WishList</span>
-      </DropdownItem>
-      <DropdownItem divider />
-      <DropdownItem
-        tag="a"
-        href="/user_manage/pages/login"
+        href="/vote_socialmedia/pages/login"
         onClick={e => {
           e.preventDefault()
             const provider = props.loggedInWith
@@ -434,13 +397,13 @@ class NavbarUser extends React.PureComponent {
             <Icon.Bell size={21} />
             <Badge pill color="primary" className="badge-up">
               {" "}
-              5{" "}
+              1{" "}
             </Badge>
           </DropdownToggle>
           <DropdownMenu tag="ul" right className="dropdown-menu-media">
             <li className="dropdown-menu-header">
               <div className="dropdown-header mt-0">
-                <h3 className="text-white">5 New</h3>
+                <h3 className="text-white">1 New</h3>
                 <span className="notification-title">App Notifications</span>
               </div>
             </li>
@@ -460,10 +423,10 @@ class NavbarUser extends React.PureComponent {
                   </Media>
                   <Media body>
                     <Media heading className="primary media-heading" tag="h6">
-                      You have new order!
+                      1 New post
                     </Media>
                     <p className="notification-text">
-                      Are your going to meet me tonight?
+                      Are your going to check it?
                     </p>
                   </Media>
                   <small>
@@ -471,108 +434,7 @@ class NavbarUser extends React.PureComponent {
                       className="media-meta"
                       dateTime="2015-06-11T18:29:20+08:00"
                     >
-                      9 hours ago
-                    </time>
-                  </small>
-                </Media>
-              </div>
-              <div className="d-flex justify-content-between">
-                <Media className="d-flex align-items-start">
-                  <Media left href="#">
-                    <Icon.DownloadCloud
-                      className="font-medium-5 success"
-                      size={21}
-                    />
-                  </Media>
-                  <Media body>
-                    <Media heading className="success media-heading" tag="h6">
-                      99% Server load
-                    </Media>
-                    <p className="notification-text">
-                      You got new order of goods?
-                    </p>
-                  </Media>
-                  <small>
-                    <time
-                      className="media-meta"
-                      dateTime="2015-06-11T18:29:20+08:00"
-                    >
-                      5 hours ago
-                    </time>
-                  </small>
-                </Media>
-              </div>
-              <div className="d-flex justify-content-between">
-                <Media className="d-flex align-items-start">
-                  <Media left href="#">
-                    <Icon.AlertTriangle
-                      className="font-medium-5 danger"
-                      size={21}
-                    />
-                  </Media>
-                  <Media body>
-                    <Media heading className="danger media-heading" tag="h6">
-                      Warning Notification
-                    </Media>
-                    <p className="notification-text">
-                      Server has used 99% of CPU
-                    </p>
-                  </Media>
-                  <small>
-                    <time
-                      className="media-meta"
-                      dateTime="2015-06-11T18:29:20+08:00"
-                    >
-                      Today
-                    </time>
-                  </small>
-                </Media>
-              </div>
-              <div className="d-flex justify-content-between">
-                <Media className="d-flex align-items-start">
-                  <Media left href="#">
-                    <Icon.CheckCircle
-                      className="font-medium-5 info"
-                      size={21}
-                    />
-                  </Media>
-                  <Media body>
-                    <Media heading className="info media-heading" tag="h6">
-                      Complete the task
-                    </Media>
-                    <p className="notification-text">
-                      One of your task is pending.
-                    </p>
-                  </Media>
-                  <small>
-                    <time
-                      className="media-meta"
-                      dateTime="2015-06-11T18:29:20+08:00"
-                    >
-                      Last week
-                    </time>
-                  </small>
-                </Media>
-              </div>
-              <div className="d-flex justify-content-between">
-                <Media className="d-flex align-items-start">
-                  <Media left href="#">
-                    <Icon.File className="font-medium-5 warning" size={21} />
-                  </Media>
-                  <Media body>
-                    <Media heading className="warning media-heading" tag="h6">
-                      Generate monthly report
-                    </Media>
-                    <p className="notification-text">
-                      Reminder to generate monthly report
-                    </p>
-                  </Media>
-                  <small>
-                    <time
-                      className="media-meta"
-                      dateTime="2015-06-11T18:29:20+08:00"
-                    >
-                      Last month
+                      2 hours ago
                     </time>
                   </small>
                 </Media>
@@ -589,7 +451,7 @@ class NavbarUser extends React.PureComponent {
           <DropdownToggle tag="a" className="nav-link dropdown-user-link">
             <div className="user-nav d-sm-flex d-none">
               <span className="user-name text-bold-600">
-                {this.props.userName}
+                {localStorage.getItem('username')}
               </span>
               <span className="user-status">Available</span>
             </div>

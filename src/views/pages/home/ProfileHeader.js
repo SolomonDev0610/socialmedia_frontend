@@ -14,9 +14,9 @@ import profileImg from "../../../assets/img/profile/user-uploads/user-13.jpg"
 
 class ProfileHeader extends React.Component {
   state = {
-    isOpen: false
+    isOpen: false,
+    political_party : localStorage.getItem("political_party")
   }
-
   toggle = () => {
     this.setState({
       isOpen: !this.state.isOpen
@@ -79,11 +79,6 @@ class ProfileHeader extends React.Component {
                 <NavItem className="px-sm-0">
                   <NavLink tag="a" href="#" className="font-small-3">
                     Videos
-                  </NavLink>
-                </NavItem>
-                <NavItem className="px-sm-0">
-                  <NavLink tag="a" href="#" className="font-small-3">
-                    Events
                   </NavLink>
                 </NavItem>
               </Nav>

@@ -25,7 +25,7 @@ class Error500 extends React.Component {
               </p>
               <Button.Ripple
                 tag="a"
-                href="/user_manage/"
+                href="/vote_socialmedia/"
                 color="primary"
                 size="lg"
                 className="mt-2"

@@ -177,15 +177,6 @@ class NavbarBasic extends React.Component {
                               <DropdownItem tag="a">
                                 <ReactCountryFlag code="us" svg /> English
                               </DropdownItem>
-                              <DropdownItem tag="a">
-                                <ReactCountryFlag code="fr" svg /> French
-                              </DropdownItem>
-                              <DropdownItem tag="a">
-                                <ReactCountryFlag code="de" svg /> German
-                              </DropdownItem>
-                              <DropdownItem tag="a">
-                                <ReactCountryFlag code="pt" svg /> Portuguese
-                              </DropdownItem>
                             </DropdownMenu>
                           </UncontrolledDropdown>
                           <NavItem className="nav-search">

@@ -30,7 +30,8 @@ const UserName = props => {
 }
 const ThemeNavbar = props => {
   const colorsArr = [ "primary", "danger", "success", "info", "warning", "dark"]
-  const navbarTypes = ["floating" , "static" , "sticky" , "hidden"]
+  const navbarTypes = ["floating" , "static" , "sticky" , "hidden"];
+  const political_party = localStorage.getItem("political_party");
   return (
     <React.Fragment>
       <div className="content-overlay" />
@@ -63,6 +64,7 @@ const ThemeNavbar = props => {
 
           }
         )}
+        style={{background: political_party == 1?'#fcc':'#c1c1ff', boxShadow:'0px 4px 15px 0px #d5d5d5'}}
       >
         <div className="navbar-wrapper">
           <div className="navbar-container content">

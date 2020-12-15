@@ -1,14 +1,16 @@
 import React from "react"
-import { Form, FormGroup, Input, Label, Button } from "reactstrap"
+import { Form, FormGroup, Input, Label, Button,CustomInput } from "reactstrap"
 import Checkbox from "../../../../components/@vuexy/checkbox/CheckboxesVuexy"
 import { Check } from "react-feather"
 import { connect } from "react-redux"
 import { signupWithJWT } from "../../../../redux/actions/auth/registerActions"
 import { history } from "../../../../history"
+import Select from "react-select";
 
 class RegisterJWT extends React.Component {
   state = {
-    email: "",
+    username: "",
+    political_party:1,
     password: "",
     first_name: "",
     last_name: "",
@@ -18,46 +20,33 @@ class RegisterJWT extends React.Component {
   handleRegister = e => {
     e.preventDefault()
     this.props.signupWithJWT(
-      this.state.email,
+      this.state.username,
       this.state.password,
-      this.state.first_name,
-      this.state.last_name
+      this.state.political_party,
     )
   }
 
   render() {
     return (
-      <Form action="/" onSubmit={this.handleRegister}>
+      <Form action="/pages/home" onSubmit={this.handleRegister}>
         <FormGroup className="form-label-group">
           <Input
             type="text"
-            placeholder="Nom"
+            placeholder="Username"
             required
-            value={this.state.last_name}
-            onChange={e => this.setState({ last_name: e.target.value })}
+            value={this.state.username}
+            onChange={e => this.setState({ username: e.target.value })}
           />
-          <Label>Name</Label>
+          <Label>Username</Label>
         </FormGroup>
           <FormGroup className="form-label-group">
-              <Input
-                  type="text"
-                  placeholder="Prénom"
-                  required
-                  value={this.state.first_name}
-                  onChange={e => this.setState({ first_name: e.target.value })}
-              />
-              <Label>Name</Label>
+              <CustomInput type="select" name="role" required id="role" onChange={e => this.setState({political_party: e.target.value})}>
+                  <option value="1">Republican</option>
+                  <option value="2">Democrat</option>
+              </CustomInput>
+              <Label>Political Party</Label>
           </FormGroup>
-        <FormGroup className="form-label-group">
-          <Input
-            type="email"
-            placeholder="Email"
-            required
-            value={this.state.email}
-            onChange={e => this.setState({ email: e.target.value })}
-          />
-          <Label>Email</Label>
-        </FormGroup>
+
         <FormGroup className="form-label-group">
           <Input
             type="password"

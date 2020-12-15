@@ -2,7 +2,7 @@
   "name": "vuexy-react-admin-dashboard",
   "version": "1.0.0",
   "private": true,
-  "homepage": "/user_manage/",
+  "homepage": "/vote_socialmedia/",
   "dependencies": {
     "ag-grid-community": "^22.1.1",
     "ag-grid-react": "^22.1.1",

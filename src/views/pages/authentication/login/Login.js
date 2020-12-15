@@ -47,61 +47,14 @@ class Login extends React.Component {
               </Col>
               <Col lg="6" md="12" className="p-0">
                 <Card className="rounded-0 mb-0 px-2 login-tabs-container">
-                  <CardHeader className="pb-1">
+                  <CardHeader className="pb-1" style={{marginTop:'80px'}}>
                     <CardTitle>
-                      <h4 className="mb-0">Identifiez-vous</h4>
+                      <h4 className="mb-0">Do you identify yourself?</h4>
                     </CardTitle>
                   </CardHeader>
-                  <p className="px-2 auth-title">
-                    Vous pouvez utiliser votre mail, compte Google ou Linkedin
-                  </p>
-                  <Nav tabs className="px-2">
-                    <NavItem>
-                      <NavLink
-                        className={classnames({
-                          active: this.state.activeTab === "1"
-                        })}
-                        onClick={() => {
-                          this.toggle("1")
-                        }}
-                      >
-                        Email
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({
-                          active: this.state.activeTab === "2"
-                        })}
-                        onClick={() => {
-                          this.toggle("2")
-                        }}
-                      >
-                        Google
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        className={classnames({
-                          active: this.state.activeTab === "3"
-                        })}
-                        onClick={() => {
-                          this.toggle("3")
-                        }}
-                      >
-                        Linkedin
-                      </NavLink>
-                    </NavItem>
-                  </Nav>
                   <TabContent activeTab={this.state.activeTab}>
                     <TabPane tabId="1">
                       <LoginJWT />
-                    </TabPane>
-                    <TabPane tabId="2">
-                      <p>Indisponible pour le moment.</p>
-                    </TabPane>
-                    <TabPane tabId="3">
-                      <p>Indisponible pour le moment.</p>
                     </TabPane>
                   </TabContent>
                 </Card>
