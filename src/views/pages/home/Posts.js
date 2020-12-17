@@ -27,7 +27,8 @@ import {history} from "../../../history";
 class Posts extends React.Component {
     state = {
         posts: [],
-        comment : "",
+        opened_childcomments : [],
+        opened_childcomment_ids:[]
     }
 
     onCreateComment = e => {
@@ -69,6 +70,76 @@ class Posts extends React.Component {
         })
     }
 
+    onShowChildComments(comment_id){
+        var element_index = this.state.opened_childcomment_ids.indexOf(comment_id);
+        if(element_index > -1){ // if childcomments are opened, remove the childcomments from the array
+            var local_opened_childcomments_ids = this.state.opened_childcomment_ids;
+            local_opened_childcomments_ids.splice(element_index, 1);
+
+            var local_opened_childcomments = this.state.opened_childcomments;
+            var removeIndex = local_opened_childcomments.map(item => item.id).indexOf("comment_"+comment_id);
+            ~removeIndex && local_opened_childcomments.splice(removeIndex, 1);
+
+            this.setState({opened_childcomments: local_opened_childcomments});
+            this.setState({opened_childcomment_ids: local_opened_childcomments_ids});
+        }else{
+            const Config = {
+                headers: {
+                    Authorization: "Bearer " + localStorage.getItem("token")
+                }
+            }
+            axios.get(global.config.server_url + "/getChildComments?parent_id="+comment_id, Config).then(response =>{
+                if(response.data && response.data.length > 0){
+                    this.setState({comments: response.data});
+                    var parent_element = document.getElementById("comment_"+comment_id);
+
+                    var local_opened_childcomment_ids = this.state.opened_childcomment_ids;
+                    var local_opened_childcomments = this.state.opened_childcomments;
+
+                    local_opened_childcomment_ids.push(comment_id);
+                    local_opened_childcomments.push({comment_id: comment_id, data: response.data});
+
+                    this.setState({opened_childcomment_ids: local_opened_childcomment_ids});
+                    this.setState({opened_childcomments: local_opened_childcomments});
+                }
+            });
+        }
+    }
+
+    createChildComments(element_id){
+        var child_comments = this.state.opened_childcomments.find(item => item.comment_id == element_id);
+        return(
+            <>
+                {child_comments != null && child_comments.data.map((comment) => (
+                    <>
+                        <div className="d-flex justify-content-start align-items-center mt-1"
+                             style={{marginLeft: (comment.depth - 1) * 40 + 'px'}}>
+                            <div className="avatar mr-50">
+                                <img src={comment.user.image} alt="Avatar" height="30" width="30"/>
+                            </div>
+                            <div className="user-page-info">
+                                <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>
+                                    {comment.user.username}
+                                </h6>
+                                <span className="font-small-2">
+                                    {comment.comment}
+                                </span>
+                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
+                                    {comment.point}
+                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
+                            </div>
+                        </div>
+                        {comment.child_count != null && comment.child_count > 0 &&
+                            <div style={{marginLeft: comment.depth * 30 + 'px',cursor:'pointer'}} onClick={()=>{this.onShowChildComments(comment.id)}} id={"comment_" + comment.id}>
+                            <CornerDownRight className="mr-50" size={15} style={{marginLeft: '15px'}}/>
+                            <span style={{fontWeight:'bold'}}>{comment.child_count} Replies</span>
+                            </div>
+                        }
+                    </>
+                ))}
+            </>
+        );
+    }
     render() {
         return (
             <React.Fragment>
@@ -85,7 +156,7 @@ class Posts extends React.Component {
                                     />
                                 </div>
                                 <div className="user-page-info">
-                                    <p className="mb-0">{post.user.username}</p>
+                                    <p className="mb-0" style={{color: post.user.political_party == 1?"red":"blue"}}>{post.user.username}</p>
                                     <span className="font-small-2">{dateConvert2(post.created_at)}</span>
                                 </div>
                                 <div className="ml-auto user-like">
@@ -150,7 +221,7 @@ class Posts extends React.Component {
                                                     id="avatar13"
                                                 />
                                                 <UncontrolledTooltip placement="bottom" target="avatar13">
-                                                    comment.user.username
+                                                    {comment.user.username}
                                                 </UncontrolledTooltip>
                                             </li>
                                             ))}
@@ -162,20 +233,32 @@ class Posts extends React.Component {
                                 </p>
                             </div>
                             {post.comments.map((comment) => (
-                            <div className="d-flex justify-content-start align-items-center mb-1">
-                                <div className="avatar mr-50">
-                                    <img src={comment.user.image?comment.user.image:defaultImage} alt="Avatar" height="30" width="30"/>
-                                </div>
-                                <div className="user-page-info">
-                                    <h6 className="mb-0">{comment.user.username}</h6>
-                                    <span className="font-small-2">
-                                      {comment.comment}
-                                    </span>
-                                    <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                    {comment.point}
-                                    <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                                </div>
-                            </div>
+                                <>
+                                    <div className="d-flex justify-content-start align-items-center mt-1">
+                                        <div className="avatar mr-50">
+                                            <img src={comment.user.image?comment.user.image:defaultImage} alt="Avatar" height="30" width="30"/>
+                                        </div>
+                                        <div className="user-page-info">
+                                            <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>{comment.user.username}</h6>
+                                            <span className="font-small-2">
+                                              {comment.comment}
+                                            </span>
+                                            <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
+                                            {comment.point}
+                                            <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
+                                        </div>
+                                    </div>
+                                    {comment.child_count != null && comment.child_count > 0 &&
+                                        <div style={{marginLeft:'30px',cursor:'pointer'}} onClick={()=>{this.onShowChildComments(comment.id)}} id={"comment_" + comment.id}>
+                                            <CornerDownRight className="mr-50" size={15} style={{marginLeft: '15px'}}/>
+                                            <span style={{fontWeight:'bold'}}>{comment.child_count} Replies</span>
+                                        </div>
+                                    }
+                                    {
+                                        this.state.opened_childcomment_ids.includes(comment.id) &&
+                                        this.createChildComments(comment.id)
+                                    }
+                            </>
                             ))}
                         </CardBody>
                     </Card>
