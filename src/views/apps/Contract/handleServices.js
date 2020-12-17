@@ -76,7 +76,7 @@ class handleServices extends React.Component {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
-        axios.get("http://localhost:8000/api/documents/" + this.props.match.params.id, Config).then(response => {
+        axios.get(global.config.server_url + "/documents/" + this.props.match.params.id, Config).then(response => {
             let rowData = response.data.services
             JSON.stringify(rowData)
             this.setState({ rowData })
@@ -89,7 +89,7 @@ class handleServices extends React.Component {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
-        axios.put("http://localhost:8000/api/services/" + params.data.id,  {
+        axios.put(global.config.server_url + "/services/" + params.data.id,  {
             name: params.data.name,
             description: params.data.description,
             variable: params.data.variable,
@@ -116,7 +116,7 @@ class handleServices extends React.Component {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
-        axios.put("http://localhost:8000/api/services/" + params.data.id,  {
+        axios.put(global.config.server_url + "/services/" + params.data.id,  {
             name: params.data.name,
             description: params.data.description,
             variable: params.data.variable,

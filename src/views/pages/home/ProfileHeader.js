@@ -11,6 +11,7 @@ import {
 import { Edit2, Settings, Menu, X } from "react-feather"
 import coverImg from "../../../assets/img/profile/user-uploads/cover.jpg"
 import profileImg from "../../../assets/img/profile/user-uploads/user-13.jpg"
+import defaultImage from "../../../../src/assets/img/profile/default_profile.jpg"
 
 class ProfileHeader extends React.Component {
   state = {
@@ -22,6 +23,7 @@ class ProfileHeader extends React.Component {
       isOpen: !this.state.isOpen
     })
   }
+
   render() {
     return (
       <div className="profile-header mb-2">
@@ -35,7 +37,7 @@ class ProfileHeader extends React.Component {
           </div>
           <div className="profile-img-container d-flex align-items-center justify-content-between">
             <img
-              src={profileImg}
+              src={localStorage.getItem("profile_image") != "undefined" ? localStorage.getItem("profile_image") : defaultImage}
               alt="porfileImg"
               className="img-fluid img-border rounded-circle box-shadow-1"
             />

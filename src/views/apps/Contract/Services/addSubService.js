@@ -49,7 +49,7 @@ class AddSubService extends React.Component {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }
-    axios.post("http://localhost:8000/api/services",  {
+    axios.post(global.config.server_url + "/services",  {
       name: data.name,
       description: data.description,
       variable: data.variable,

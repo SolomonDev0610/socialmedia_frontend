@@ -32,8 +32,8 @@ class LoginJWT extends React.Component {
               <Input
                 type="text"
                 placeholder="Username"
-                value={this.state.email}
-                onChange={e => this.setState({ email: e.target.value })}
+                value={this.state.username}
+                onChange={e => this.setState({ username: e.target.value })}
                 required
               />
               <div className="form-control-position">

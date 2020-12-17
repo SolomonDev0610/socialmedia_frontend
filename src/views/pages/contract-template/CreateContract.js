@@ -176,7 +176,7 @@ class CreateContract extends React.Component {
               user_id: this.props.match.params.id
           }
       );
-      axios.get("http://localhost:8000/api/get_template/1", Config).then(response => {
+      axios.get(global.config.server_url + "/get_template/1", Config).then(response => {
           if(response.data != null) {
               let values = JSON.parse(response.data.values);
               this.setState(
@@ -190,7 +190,7 @@ class CreateContract extends React.Component {
               console.log("Values are empty!");
           }
       })
-      axios.get("http://localhost:8000/api/users/" + this.props.match.params.id, Config).then(response => {
+      axios.get(global.config.server_url + "/users/" + this.props.match.params.id, Config).then(response => {
           let rowData = response.data
           let perso = response.data.personal_informations;
           perso =  Object.assign(rowData, perso);
@@ -215,7 +215,7 @@ class CreateContract extends React.Component {
       parameters['user_id'] = userid;
       parameters['values'] = JSON.stringify(input_values);
 
-      axios.post("http://localhost:8000/api/documents", parameters, Config)
+      axios.post(global.config.server_url + "/documents", parameters, Config)
           .then(function(result) {
               history.push("/app/user/edit/" + userid + "/3")
           })

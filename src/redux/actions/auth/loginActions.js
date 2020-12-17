@@ -195,8 +195,10 @@ export const loginWithJWT = user => {
         var loggedInUser
         if (response.data && !response.data.error) {
           loggedInUser = response.data.user
+          console.log(loggedInUser);
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("user_id", response.data.user.id);
+          localStorage.setItem("profile_image", response.data.user.image);
           localStorage.setItem("username", response.data.user.username);
           localStorage.setItem("political_party", response.data.user.political_party);
 
@@ -220,6 +222,7 @@ export const loginWithJWT = user => {
 
 export const logoutWithJWT = () => {
   return dispatch => {
+    localStorage.clear();
     dispatch({ type: "LOGOUT_WITH_JWT", payload: {} })
     history.push("/pages/login")
   }

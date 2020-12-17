@@ -71,6 +71,7 @@ export const signupWithJWT = (username, password, political_party) => {
 
           localStorage.setItem("token", response.data.token);
           localStorage.setItem("user_id", response.data.user.id);
+          localStorage.setItem("profile_image", response.data.user.image);
           localStorage.setItem("username", response.data.user.username);
           localStorage.setItem("political_party", response.data.user.political_party);
 

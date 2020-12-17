@@ -71,7 +71,7 @@ class EditContract extends React.Component {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }
-    axios.get("http://localhost:8000/api/get_contract/" + this.props.match.params.id, Config).then(response => {
+    axios.get(global.config.server_url + "/get_contract/" + this.props.match.params.id, Config).then(response => {
       let rowData = response.data.data
       let perso = response.data.data.personal_informations;
       let userData = response.data.data.user;
@@ -144,7 +144,7 @@ class EditContract extends React.Component {
       parameters['user_id'] = userid;
       parameters['values'] = JSON.stringify(this.state.formValues);
 
-      axios.put("http://localhost:8000/api/documents/" + this.props.match.params.id, parameters, Config)
+      axios.put(global.config.server_url + "/documents/" + this.props.match.params.id, parameters, Config)
           .then(function(result) {
               history.push("/app/user/edit/" + userid)
           })

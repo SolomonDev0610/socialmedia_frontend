@@ -21,7 +21,7 @@ class UserInfoTab extends React.Component {
 
     console.log(information.personal_address)
     axios
-        .put("http://localhost:8000/api/personal_information/" + this.props.id, {
+        .put(global.config.server_url + "/personal_information/" + this.props.id, {
 
           notes: information.notes,
         }, Config)

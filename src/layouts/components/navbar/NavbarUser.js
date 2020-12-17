@@ -18,6 +18,7 @@ import ReactCountryFlag from "react-country-flag"
 import Autocomplete from "../../../components/@vuexy/autoComplete/AutoCompleteComponent"
 import { history } from "../../../history"
 import { IntlContext } from "../../../utility/context/Internationalization"
+import defaultImage from "../../../../src/assets/img/profile/default_profile.jpg"
 
 const handleNavigation = (e, path) => {
   e.preventDefault()
@@ -457,7 +458,7 @@ class NavbarUser extends React.PureComponent {
             </div>
             <span data-tour="user">
               <img
-                src={this.props.userImg}
+                src={localStorage.getItem("profile_image") != "undefined" ? localStorage.getItem("profile_image") : defaultImage}
                 className="round"
                 height="40"
                 width="40"

@@ -62,11 +62,10 @@ class AddUser extends React.Component {
     this.setState({ Alert : value })
     if (value === false)
       history.push("/app/user/conslist")
-
   }
 
   sendForm = (data) => {
-    axios.post("http://localhost:8000/api/register", {
+    axios.post(global.config.server_url + "/register", {
       email: data.email,
       password: data.password,
       name: data.first_name + " " + data.last_name
@@ -75,7 +74,7 @@ class AddUser extends React.Component {
           console.log(result)
           if (result.data.accessToken) {
             axios
-                .post("http://localhost:8000/api/personal_information", {
+                .post(global.config.server_url + "/personal_information", {
                   user_id: 10,
                   last_name: data.last_name,
                   maiden_name: data.maiden_name,
@@ -114,12 +113,12 @@ class AddUser extends React.Component {
           toast.error("API injoignable" + data.name)
         })
   }
-    handledob = date => {
-        var test = new Date(date[0])
-        var MyDateString = test.getFullYear() + "-" + ('0' + (test.getMonth()+1)).slice(-2) + "-" + ('0' + test.getDate()).slice(-2);
+  handledob = date => {
+      var test = new Date(date[0])
+      var MyDateString = test.getFullYear() + "-" + ('0' + (test.getMonth()+1)).slice(-2) + "-" + ('0' + test.getDate()).slice(-2);
 
-        this.setState({ data: { ...this.state.data, birth_date: MyDateString} })
-    }
+      this.setState({ data: { ...this.state.data, birth_date: MyDateString} })
+  }
   handleSubmit = e => {
     e.preventDefault()
     this.sendForm(this.state.data)

@@ -55,7 +55,7 @@ class UserAccountTab extends React.Component {
     }
     // console.log(localStorage.getItem("token"))
     axios
-        .put("http://localhost:8000/api/users/" + this.props.id, {
+        .put(global.config.server_url + "/users/" + this.props.id, {
           name: information.username,
           email: information.email,
           role: information.role,
@@ -63,7 +63,7 @@ class UserAccountTab extends React.Component {
         }, Config)
         .then(response => {
           axios
-              .put("http://localhost:8000/api/personal_information/" + this.props.id,{
+              .put(global.config.server_url + "/personal_information/" + this.props.id,{
                 civility: information.status,
                 first_name: information.first_name,
                 last_name: information.last_name,

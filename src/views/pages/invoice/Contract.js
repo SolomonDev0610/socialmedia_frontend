@@ -41,9 +41,9 @@ class Contract extends React.Component {
         Authorization: "Bearer " + localStorage.getItem("token")
       }
     }
-    axios.get("http://localhost:8000/api/documents/" + this.props.match.params.id, Config).then(response => {
+    axios.get(global.config.server_url + "/documents/" + this.props.match.params.id, Config).then(response => {
       let services = response.data.services
-        axios.get("http://localhost:8000/api/users/" + response.data.user_id, Config).then(response => {
+        axios.get(global.config.server_url + "/users/" + response.data.user_id, Config).then(response => {
           let rowData = response.data
           let perso = response.data.personal_informations
           this.setState({ rowData, perso })
