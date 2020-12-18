@@ -33,6 +33,7 @@ class Posts extends React.Component {
         comment: '',
         child_comment:'',
         child_comment_id:'',
+        child_comment_depth:'',
     }
 
     onCreateComment = e => {
@@ -129,35 +130,37 @@ class Posts extends React.Component {
             });
         }
     }
-    toggleModal = (comment_id) => {
+    toggleModal = (comment_id, depth) => {
         this.setState(prevState => ({
             modal: !prevState.modal,
-            child_comment_id: comment_id
+            child_comment_id: comment_id,
+            child_comment_depth: depth
         }));
     }
     onPostComment = e => {
         e.preventDefault();
-        console.log("onPostComment ---------");
         this.submitChildComment(this.state);
     }
     submitChildComment(component_state) {
-        var test_value = {
-            parent_id: component_state.child_comment_id,
-            comment:component_state.child_comment
-        };
-        console.log(test_value);
-        // const Config = {
-        //     headers: {
-        //         Authorization: "Bearer " + localStorage.getItem("token")
-        //     }
-        // }
-        // axios.put(global.config.server_url + "/comments",{
-        //     parent_id:this.state.child_comment_id,
-        //     comment: this.state.child_comment
-        // }, Config).then(response => {
-        //     console.log(response.data);
-        //     this.setState({ posts: response.data })
-        // })
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+
+        axios.post(global.config.server_url + "/comments",{
+
+            parent_id:component_state.child_comment_id,
+            comment: component_state.child_comment,
+            user_id: localStorage.getItem("user_id"),
+            political_party_id: localStorage.getItem("political_party"),
+            depth: parseInt(component_state.child_comment_depth) + 1
+
+        }, Config).then(response => {
+console.log("created comment result : +++ ");
+            console.log(response.data);
+            // this.setState({ posts: response.data })
+        })
     }
     createChildComments(element_id){
         var child_comments = this.state.opened_childcomments.find(item => item.comment_id == element_id);
@@ -180,6 +183,7 @@ class Posts extends React.Component {
                                 <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
                                     {comment.point}
                                 <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
+                                <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth)}}>reply</span>
                             </div>
                         </div>
                         {comment.child_count != null && comment.child_count > 0 &&
@@ -305,7 +309,7 @@ class Posts extends React.Component {
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
                                             {comment.point}
                                             <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id)}}>reply</span>
+                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth)}}>reply</span>
                                         </div>
                                     </div>
                                     {comment.child_count != null && comment.child_count > 0 &&
