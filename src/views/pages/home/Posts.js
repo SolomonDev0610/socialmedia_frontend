@@ -5,7 +5,7 @@ import {
     UncontrolledTooltip,
     Input,
     Label,
-    Button
+    Button, ModalHeader, ModalBody, FormGroup, ModalFooter, Modal
 } from "reactstrap"
 import {Heart, ThumbsDown, ThumbsUp, CornerDownRight} from "react-feather"
 import profileImg from "../../../assets/img/profile/user-uploads/user-01.jpg"
@@ -28,7 +28,11 @@ class Posts extends React.Component {
     state = {
         posts: [],
         opened_childcomments : [],
-        opened_childcomment_ids:[]
+        opened_childcomment_ids:[],
+        modal: false,
+        comment: '',
+        child_comment:'',
+        child_comment_id:'',
     }
 
     onCreateComment = e => {
@@ -63,9 +67,7 @@ class Posts extends React.Component {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
-
         await axios.get(global.config.server_url + "/posts", Config).then(response => {
-            console.log(response.data);
             this.setState({ posts: response.data })
         })
     }
@@ -73,15 +75,37 @@ class Posts extends React.Component {
     onShowChildComments(comment_id){
         var element_index = this.state.opened_childcomment_ids.indexOf(comment_id);
         if(element_index > -1){ // if childcomments are opened, remove the childcomments from the array
-            var local_opened_childcomments_ids = this.state.opened_childcomment_ids;
-            local_opened_childcomments_ids.splice(element_index, 1);
 
+            // get all level child ids from the parent_id
+            var local_opened_childcomments_ids = this.state.opened_childcomment_ids;
             var local_opened_childcomments = this.state.opened_childcomments;
-            var removeIndex = local_opened_childcomments.map(item => item.id).indexOf("comment_"+comment_id);
+
+            local_opened_childcomments_ids.splice(element_index, 1);
+            var removeIndex = local_opened_childcomments.map(item => item.comment_id).indexOf(comment_id);
             ~removeIndex && local_opened_childcomments.splice(removeIndex, 1);
 
-            this.setState({opened_childcomments: local_opened_childcomments});
-            this.setState({opened_childcomment_ids: local_opened_childcomments_ids});
+            const Config = {
+                headers:{
+                    Authorization:"Bearer " + localStorage.getItem("token")
+                }
+            }
+
+            axios.get(global.config.server_url + "/getAllLevelChildIds?parent_id="+comment_id, Config).then(response =>{
+                if(response.data.child_ids != null && response.data.child_ids.length > 0){
+                    response.data.child_ids.forEach(child_comment_id =>{
+
+                        var child_element_index = this.state.opened_childcomment_ids.indexOf(child_comment_id);
+                        if(child_element_index > -1){
+                            local_opened_childcomments_ids.splice(child_element_index, 1);
+
+                            var removeIndex = local_opened_childcomments.map(item => item.comment_id).indexOf(child_comment_id);
+                            ~removeIndex && local_opened_childcomments.splice(removeIndex, 1);
+                        }
+                    })
+                }
+                this.setState({opened_childcomments: local_opened_childcomments});
+                this.setState({opened_childcomment_ids: local_opened_childcomments_ids});
+            });
         }else{
             const Config = {
                 headers: {
@@ -105,7 +129,36 @@ class Posts extends React.Component {
             });
         }
     }
-
+    toggleModal = (comment_id) => {
+        this.setState(prevState => ({
+            modal: !prevState.modal,
+            child_comment_id: comment_id
+        }));
+    }
+    onPostComment = e => {
+        e.preventDefault();
+        console.log("onPostComment ---------");
+        this.submitChildComment(this.state);
+    }
+    submitChildComment(component_state) {
+        var test_value = {
+            parent_id: component_state.child_comment_id,
+            comment:component_state.child_comment
+        };
+        console.log(test_value);
+        // const Config = {
+        //     headers: {
+        //         Authorization: "Bearer " + localStorage.getItem("token")
+        //     }
+        // }
+        // axios.put(global.config.server_url + "/comments",{
+        //     parent_id:this.state.child_comment_id,
+        //     comment: this.state.child_comment
+        // }, Config).then(response => {
+        //     console.log(response.data);
+        //     this.setState({ posts: response.data })
+        // })
+    }
     createChildComments(element_id){
         var child_comments = this.state.opened_childcomments.find(item => item.comment_id == element_id);
         return(
@@ -135,6 +188,10 @@ class Posts extends React.Component {
                             <span style={{fontWeight:'bold'}}>{comment.child_count} Replies</span>
                             </div>
                         }
+                        {
+                            this.state.opened_childcomment_ids.includes(comment.id) &&
+                            this.createChildComments(comment.id)
+                        }
                     </>
                 ))}
             </>
@@ -142,6 +199,7 @@ class Posts extends React.Component {
     }
     render() {
         return (
+        <>
             <React.Fragment>
                 {this.state.posts.map((post) => (
                     <Card style={{background: '#ffcccc'}}>
@@ -198,10 +256,11 @@ class Posts extends React.Component {
                                     placeholder="Add Comment"
                                     id="add-comment"
                                     style={{background: '#fde0e0', borderColor: '#f5c2c2'}}
+                                    onChange={e=>this.setState({comment: e.target.value})}
                                 />
                                 <Label for="add-comment">Add Comment</Label>
                             </fieldset>
-                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={this.onCreateComment}>
+                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment}>
                                 Post Comment
                             </Button.Ripple>
                             <div className="d-flex justify-content-start align-items-center mb-1">
@@ -246,6 +305,7 @@ class Posts extends React.Component {
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
                                             {comment.point}
                                             <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
+                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id)}}>reply</span>
                                         </div>
                                     </div>
                                     {comment.child_count != null && comment.child_count > 0 &&
@@ -768,6 +828,33 @@ class Posts extends React.Component {
                     </CardBody>
                 </Card>
             </React.Fragment>
+                <Modal
+                    isOpen={this.state.modal}
+                    toggle={this.toggleModal}
+                    className="modal-dialog-centered"
+                >
+                <ModalHeader toggle={this.toggleModal}>
+                        Add Comment
+                    </ModalHeader>
+                    <ModalBody>
+                        <FormGroup>
+                            <Label for="child_comment">Comment:</Label>
+                            <Input
+                                type="textarea"
+                                rows="5"
+                                placeholder="Add Comment"
+                                id="child_comment"
+                                onChange={e=> this.setState({child_comment:e.target.value})}
+                            />
+                        </FormGroup>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="primary" onClick={this.onPostComment}>
+                            Commit
+                        </Button>{" "}
+                    </ModalFooter>
+                </Modal>
+        </>
         )
     }
 }
