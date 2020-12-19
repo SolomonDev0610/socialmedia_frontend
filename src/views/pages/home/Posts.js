@@ -23,6 +23,7 @@ import {dateConvert2} from "../../../helpers/dateConvert"
 import defaultImage from "../../../../src/assets/img/profile/default_profile.jpg"
 import {toast} from "react-toastify";
 import {history} from "../../../history";
+import {waiterHide, waiterShow} from "../../../../src/helpers/waiter";
 
 class Posts extends React.Component {
     state = {
@@ -74,6 +75,7 @@ class Posts extends React.Component {
     }
 
     onShowChildComments(comment_id){
+        waiterShow();
         var element_index = this.state.opened_childcomment_ids.indexOf(comment_id);
         if(element_index > -1){ // if childcomments are opened, remove the childcomments from the array
 
@@ -106,6 +108,12 @@ class Posts extends React.Component {
                 }
                 this.setState({opened_childcomments: local_opened_childcomments});
                 this.setState({opened_childcomment_ids: local_opened_childcomments_ids});
+                waiterHide();
+            })
+            .catch(error => {
+                waiterHide();
+                console.log(error);
+                toast.error("API Not Reply.")
             });
         }else{
             const Config = {
@@ -126,8 +134,13 @@ class Posts extends React.Component {
 
                     this.setState({opened_childcomment_ids: local_opened_childcomment_ids});
                     this.setState({opened_childcomments: local_opened_childcomments});
+                    waiterHide();
                 }
-            });
+            }).catch(error => {
+                waiterHide();
+                console.log(error);
+                toast.error("API Not Reply.")
+            });;
         }
     }
     toggleModal = (comment_id, depth) => {
@@ -142,6 +155,7 @@ class Posts extends React.Component {
         this.submitChildComment(this.state);
     }
     submitChildComment(component_state) {
+        waiterShow();
         const Config = {
             headers: {
                 Authorization: "Bearer " + localStorage.getItem("token")
@@ -157,7 +171,7 @@ class Posts extends React.Component {
             depth: parseInt(component_state.child_comment_depth) + 1
 
         }, Config).then(response => {
-console.log("created comment result : +++ ");
+            waiterHide();
             console.log(response.data);
             // this.setState({ posts: response.data })
         })
@@ -221,9 +235,7 @@ console.log("created comment result : +++ ");
                                     <p className="mb-0" style={{color: post.user.political_party == 1?"red":"blue"}}>{post.user.username}</p>
                                     <span className="font-small-2">{dateConvert2(post.created_at)}</span>
                                 </div>
-                                <div className="ml-auto user-like">
-                                    <Heart fill="#EA5455" stroke="#EA5455"/>
-                                </div>
+
                             </div>
                             <h3>
                                 {post.title}
@@ -269,7 +281,6 @@ console.log("created comment result : +++ ");
                             </Button.Ripple>
                             <div className="d-flex justify-content-start align-items-center mb-1">
                                 <div className="d-flex align-items-center">
-                                    <Heart size={16} className="mr-50"/>
                                     {post.total_point}
                                 </div>
                                 <div className="ml-2">
@@ -342,9 +353,6 @@ console.log("created comment result : +++ ");
                                 <p className="mb-0">Leeanna Alvord</p>
                                 <span className="font-small-2">12 Dec 2018 at 1:16 AM</span>
                             </div>
-                            <div className="ml-auto user-like">
-                                <Heart fill="#EA5455" stroke="#EA5455"/>
-                            </div>
                         </div>
                         <h3>
                             The wall on the southern border was unnecessary
@@ -390,7 +398,6 @@ console.log("created comment result : +++ ");
                         </Button.Ripple>
                         <div className="d-flex justify-content-start align-items-center mb-1">
                             <div className="d-flex align-items-center">
-                                <Heart size={16} className="mr-50"/>
                                 145
                             </div>
                             <div className="ml-2">
@@ -594,9 +601,6 @@ console.log("created comment result : +++ ");
                                 <p className="mb-0">Leeanna Alvord</p>
                                 <span className="font-small-2">12 Dec 2018 at 1:16 AM</span>
                             </div>
-                            <div className="ml-auto user-like">
-                                <Heart fill="#EA5455" stroke="#EA5455"/>
-                            </div>
                         </div>
                         <h3>
                             The wall on the southern border was unnecessary
@@ -642,7 +646,6 @@ console.log("created comment result : +++ ");
                         </Button.Ripple>
                         <div className="d-flex justify-content-start align-items-center mb-1">
                             <div className="d-flex align-items-center">
-                                <Heart size={16} className="mr-50"/>
                                 145
                             </div>
                             <div className="ml-2">

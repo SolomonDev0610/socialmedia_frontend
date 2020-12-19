@@ -42,7 +42,7 @@ class RegisterJWT extends React.Component {
           <FormGroup className="form-label-group">
               <CustomInput type="select" name="role" required id="role" onChange={e => this.setState({political_party: e.target.value})}>
                   <option value="1">Republican</option>
-                  <option value="2">Democrat</option>
+                  <option value="2">Democratic</option>
               </CustomInput>
               <Label>Political Party</Label>
           </FormGroup>

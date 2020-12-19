@@ -29,16 +29,16 @@ class Index extends React.Component {
   render() {
     return (
       <React.Fragment>
-        <Breadcrumbs
-          breadCrumbTitle="Home"
-          breadCrumbParent="posts"
-        />
+        {/*<Breadcrumbs*/}
+        {/*  breadCrumbTitle="Home"*/}
+        {/*  breadCrumbParent="posts"*/}
+        {/*/>*/}
         <div id="user-profile">
-          <Row>
-            <Col sm="12">
-              <ProfileHeader />
-            </Col>
-          </Row>
+          {/*<Row>*/}
+          {/*  <Col sm="12">*/}
+          {/*    <ProfileHeader />*/}
+          {/*  </Col>*/}
+          {/*</Row>*/}
           <div id="profile-info">
             <Row>
               <Col lg="3" md="12">

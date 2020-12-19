@@ -390,71 +390,71 @@ class NavbarUser extends React.PureComponent {
             </div>
           </div>
         </NavItem>
-        <UncontrolledDropdown
-          tag="li"
-          className="dropdown-notification nav-item"
-        >
-          <DropdownToggle tag="a" className="nav-link nav-link-label">
-            <Icon.Bell size={21} />
-            <Badge pill color="primary" className="badge-up">
-              {" "}
-              1{" "}
-            </Badge>
-          </DropdownToggle>
-          <DropdownMenu tag="ul" right className="dropdown-menu-media">
-            <li className="dropdown-menu-header">
-              <div className="dropdown-header mt-0">
-                <h3 className="text-white">1 New</h3>
-                <span className="notification-title">App Notifications</span>
-              </div>
-            </li>
-            <PerfectScrollbar
-              className="media-list overflow-hidden position-relative"
-              options={{
-                wheelPropagation: false
-              }}
-            >
-              <div className="d-flex justify-content-between">
-                <Media className="d-flex align-items-start">
-                  <Media left href="#">
-                    <Icon.PlusSquare
-                      className="font-medium-5 primary"
-                      size={21}
-                    />
-                  </Media>
-                  <Media body>
-                    <Media heading className="primary media-heading" tag="h6">
-                      1 New post
-                    </Media>
-                    <p className="notification-text">
-                      Are your going to check it?
-                    </p>
-                  </Media>
-                  <small>
-                    <time
-                      className="media-meta"
-                      dateTime="2015-06-11T18:29:20+08:00"
-                    >
-                      2 hours ago
-                    </time>
-                  </small>
-                </Media>
-              </div>
-            </PerfectScrollbar>
-            <li className="dropdown-menu-footer">
-              <DropdownItem tag="a" className="p-1 text-center">
-                <span className="align-middle">Read all notifications</span>
-              </DropdownItem>
-            </li>
-          </DropdownMenu>
-        </UncontrolledDropdown>
+        {/*<UncontrolledDropdown*/}
+        {/*  tag="li"*/}
+        {/*  className="dropdown-notification nav-item"*/}
+        {/*>*/}
+        {/*  <DropdownToggle tag="a" className="nav-link nav-link-label">*/}
+        {/*    <Icon.Bell size={21} />*/}
+        {/*    <Badge pill color="primary" className="badge-up">*/}
+        {/*      {" "}*/}
+        {/*      1{" "}*/}
+        {/*    </Badge>*/}
+        {/*  </DropdownToggle>*/}
+        {/*  <DropdownMenu tag="ul" right className="dropdown-menu-media">*/}
+        {/*    <li className="dropdown-menu-header">*/}
+        {/*      <div className="dropdown-header mt-0">*/}
+        {/*        <h3 className="text-white">1 New</h3>*/}
+        {/*        <span className="notification-title">App Notifications</span>*/}
+        {/*      </div>*/}
+        {/*    </li>*/}
+        {/*    <PerfectScrollbar*/}
+        {/*      className="media-list overflow-hidden position-relative"*/}
+        {/*      options={{*/}
+        {/*        wheelPropagation: false*/}
+        {/*      }}*/}
+        {/*    >*/}
+        {/*      <div className="d-flex justify-content-between">*/}
+        {/*        <Media className="d-flex align-items-start">*/}
+        {/*          <Media left href="#">*/}
+        {/*            <Icon.PlusSquare*/}
+        {/*              className="font-medium-5 primary"*/}
+        {/*              size={21}*/}
+        {/*            />*/}
+        {/*          </Media>*/}
+        {/*          <Media body>*/}
+        {/*            <Media heading className="primary media-heading" tag="h6">*/}
+        {/*              1 New post*/}
+        {/*            </Media>*/}
+        {/*            <p className="notification-text">*/}
+        {/*              Are your going to check it?*/}
+        {/*            </p>*/}
+        {/*          </Media>*/}
+        {/*          <small>*/}
+        {/*            <time*/}
+        {/*              className="media-meta"*/}
+        {/*              dateTime="2015-06-11T18:29:20+08:00"*/}
+        {/*            >*/}
+        {/*              2 hours ago*/}
+        {/*            </time>*/}
+        {/*          </small>*/}
+        {/*        </Media>*/}
+        {/*      </div>*/}
+        {/*    </PerfectScrollbar>*/}
+        {/*    <li className="dropdown-menu-footer">*/}
+        {/*      <DropdownItem tag="a" className="p-1 text-center">*/}
+        {/*        <span className="align-middle">Read all notifications</span>*/}
+        {/*      </DropdownItem>*/}
+        {/*    </li>*/}
+        {/*  </DropdownMenu>*/}
+        {/*</UncontrolledDropdown>*/}
         <UncontrolledDropdown tag="li" className="dropdown-user nav-item">
           <DropdownToggle tag="a" className="nav-link dropdown-user-link">
             <div className="user-nav d-sm-flex d-none">
               <span className="user-name text-bold-600">
                 {localStorage.getItem('username')}
               </span>
-              <span className="user-status">Available</span>
+              <span className="user-status">{localStorage.getItem('political_party') == 1?"Republican" : "Democratic"}</span>
             </div>
             <span data-tour="user">
               <img

@@ -1,7 +1,8 @@
 import React from "react"
 import { Card, CardHeader, CardTitle, CardBody, Button } from "reactstrap"
 import { MoreHorizontal, Facebook, Instagram, Twitter } from "react-feather"
-const political_party = localStorage.getItem("political_party");
+import republican_img from "../../../assets/img/logo/republican_logo.png";
+import democratic_img from "../../../assets/img/logo/democratic_logo.png";
 class AboutCard extends React.Component {
 
   render() {
@@ -17,22 +18,19 @@ class AboutCard extends React.Component {
           </p>
           <div className="mt-1">
             <h6 className="mb-0">Political Party:</h6>
-            <p>{political_party == 1?"Republican":"Democrat"}</p>
+            <p>{localStorage.getItem("political_party") == 1?"Republican":"Democrat"}</p>
           </div>
           <div className="mt-1">
-            <h6 className="mb-0">Total Earned Point:</h6>
+            <h6 className="mb-0">Total Earned Points:</h6>
             <p>5012</p>
           </div>
-          <div className="mt-1">
-            <Button color="primary" size="sm" className="btn-icon mr-25 p-25">
-              <Facebook />
-            </Button>
-            <Button color="primary" size="sm" className="btn-icon mr-25 p-25">
-              <Twitter />
-            </Button>
-            <Button color="primary" size="sm" className="btn-icon p-25">
-              <Instagram />
-            </Button>
+          <div style={{width:'100%',textAlign:'center'}}>
+            <img
+                height="100" width="100"
+                src={localStorage.getItem("political_party") == 1?republican_img:democratic_img}
+                alt="CoverImg"
+                className="img-fluid bg-cover rounded-0"
+            />
           </div>
         </CardBody>
       </Card>

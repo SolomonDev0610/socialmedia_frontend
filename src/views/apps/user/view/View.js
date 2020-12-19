@@ -19,6 +19,8 @@ import userImg from "../../../../assets/img/profile/default_profile.jpg"
 import "../../../../assets/scss/pages/users.scss"
 import {useDropzone} from "react-dropzone";
 import defaultImage from "../../../../../src/assets/img/profile/default_profile.jpg"
+import republican_img from "../../../../assets/img/logo/republican_logo.png";
+import democratic_img from "../../../../assets/img/logo/democratic_logo.png";
 
 function UserView() {
     const [profileImage, setProfileImage] = useState(userImg);
@@ -115,7 +117,7 @@ function UserView() {
                                         </Button.Ripple>
                                     </div>
                                 </Col>
-                                <Col md="8" sm="12">
+                                <Col md="4" sm="12">
                                     <Row>
                                         <FormGroup>
                                             <Label for="name">username</Label>
@@ -132,19 +134,19 @@ function UserView() {
                                         <FormGroup>
                                             <Label for="name">Political Party</Label>
                                             {politicalParty &&
-                                            <CustomInput type="select" name="political_party"
-                                                         defaultValue={politicalParty}
-                                                         onChange={e => setPoliticalParty(e.target.value)}>
-                                                <option value="1">Republican</option>
-                                                <option value="2">Democrat</option>
-                                            </CustomInput>
+                                                <CustomInput type="select" name="political_party"
+                                                             defaultValue={politicalParty}
+                                                             onChange={e => setPoliticalParty(e.target.value)}>
+                                                    <option value="1">Republican</option>
+                                                    <option value="2">Democrat</option>
+                                                </CustomInput>
                                             }
                                             {politicalParty == null &&
-                                            <CustomInput type="select" name="political_party"
-                                                         onChange={e => setPoliticalParty(e.target.value)}>
-                                                <option value="1">Republican</option>
-                                                <option value="2">Democrat</option>
-                                            </CustomInput>
+                                                <CustomInput type="select" name="political_party"
+                                                             onChange={e => setPoliticalParty(e.target.value)}>
+                                                    <option value="1">Republican</option>
+                                                    <option value="2">Democrat</option>
+                                                </CustomInput>
                                             }
                                         </FormGroup>
                                     </Row>
@@ -164,6 +166,24 @@ function UserView() {
                                     <Button.Ripple className="mr-1" color="primary" onClick={onSave}>
                                         Save Profile
                                     </Button.Ripple>
+                                </Col>
+                                <Col md="4" sm="12" style={{paddingTop:'30px'}}>
+                                    {politicalParty == 1 &&
+                                        <img
+                                            height="150" width="150"
+                                            src={ republican_img }
+                                            alt="CoverImg"
+                                            className="img-fluid bg-cover rounded-0"
+                                        />
+                                    }
+                                    {politicalParty == 2 &&
+                                        <img
+                                            height="150" width="150"
+                                            src={ democratic_img }
+                                            alt="CoverImg"
+                                            className="img-fluid bg-cover rounded-0"
+                                        />
+                                    }
                                 </Col>
                             </Row>
                         </CardBody>

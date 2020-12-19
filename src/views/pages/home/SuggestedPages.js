@@ -16,7 +16,7 @@ class SuggestedPages extends React.Component {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Suggested Pages</CardTitle>
+          <CardTitle>Suggested Posts</CardTitle>
         </CardHeader>
         <CardBody className="suggested-block">
           <div className="d-flex justify-content-start align-items-center mb-1">

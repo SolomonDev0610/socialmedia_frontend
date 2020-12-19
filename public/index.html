@@ -27,8 +27,63 @@
     />
     <base href="%PUBLIC_URL%/">
     <title>Vote - SocialMedia</title>
+    <style>
+      .loader {
+        border: 16px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 16px solid #3498db;
+        -webkit-animation: spin 2s linear infinite; /* Safari */
+        animation: spin 2s linear infinite;
+        width: 60px;
+        height: 60px;
+        margin-left: 20px;
+      }
+      .waiter_section{
+        display: none;
+        z-index: 9999;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        /*background: rgba(136, 136, 136, 0.6);*/
+      }
+      .waiter_text{
+        font-weight: bold;
+        color: #378bce;
+        font-size: 25px;
+      }
+      .waiter_collection{
+        z-index: 9999;
+        position: absolute;
+        left: 45%;
+        top: 40%;
+      }
+      /* Safari */
+      @-webkit-keyframes spin {
+        0% { -webkit-transform: rotate(0deg); }
+        100% { -webkit-transform: rotate(360deg); }
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      .cancel_btn{
+        cursor: pointer;
+        margin-top: 20px;
+        margin-left: 15px;
+        color: #489ce4;
+        font-size: 20px;
+      }
+    </style>
   </head>
   <body>
+    <div class="waiter_section">
+    <div class="waiter_collection">
+      <div class="loader"></div>
+    </div>
+  </div>
     <div id="root"></div>
     <!--
       This HTML file is a template.
