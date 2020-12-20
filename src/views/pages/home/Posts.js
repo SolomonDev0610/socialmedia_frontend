@@ -24,41 +24,95 @@ import defaultImage from "../../../../src/assets/img/profile/default_profile.jpg
 import {toast} from "react-toastify";
 import {history} from "../../../history";
 import {waiterHide, waiterShow} from "../../../../src/helpers/waiter";
+import {now} from "moment";
 
 class Posts extends React.Component {
     state = {
+        title : "",
+        contents : "",
         posts: [],
         opened_childcomments : [],
         opened_childcomment_ids:[],
         modal: false,
         comment: '',
-        child_comment:'',
-        child_comment_id:'',
-        child_comment_depth:'',
+        reply_comment:'',
+        reply_comment_post_id:'',
+        reply_comment_id:'',
+        reply_comment_depth:'',
+        reply_comment_parent_id:''
     }
 
-    onCreateComment = e => {
+    onCreatePost = e => {
         e.preventDefault();
-        this.submitComment(this.state);
+        this.submitPost(this.state);
     }
-    submitComment (info){
+    submitPost (info){
+        waiterShow();
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+        axios.post(global.config.server_url + "/posts", {
+            title: info.title,
+            contents: info.contents,
+            user_id: localStorage.getItem("user_id"),
+            political_party_id: localStorage.getItem("political_party"),
+            created_at: new Date()
+        }, Config)
+            .then(response => {
+
+                waiterHide();
+                var tmp_posts = this.state.posts;
+                tmp_posts.unshift(response.data);
+
+                //------ init --------
+                this.setState({posts: tmp_posts});
+                this.setState({title: ''});
+                this.setState({contents: ''});
+                document.getElementById("title").value="";
+                document.getElementById("content").value="";
+            })
+            .catch(function(error) {
+                console.log(error);
+                toast.error("Server process Fail");
+            })
+    }
+
+    onCreateComment (post_id) {
+        this.submitComment(this.state, post_id);
+    }
+    submitComment (info, post_id){
+        waiterShow();
+
         const Config = {
             headers: {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
         axios.post(global.config.server_url + "/comments", {
-            title: info.title,
-            contents: info.contents,
+            post_id: post_id,
+            parent_id: 0,
+            depth: 1,
+            comment: info.comment,
             user_id: localStorage.getItem("user_id"),
             political_party_id: localStorage.getItem("political_party"),
         }, Config)
-            .then(function(result) {
-                toast.info("New Comment Created Successfully!");
-                history.push("/pages/home");
+            .then(response => {
+                waiterHide();
+                var tmp_posts = this.state.posts;
+                var current_post = tmp_posts.find(item=>{
+                    return item.id == post_id
+                });
+
+                current_post.comments.unshift(response.data);
+                current_post.comment_count = current_post.comment_count + 1;
+                this.setState({comment: ''});
+                document.getElementById("input-comment"+post_id).value="";
+                this.setState({posts: tmp_posts});
             })
             .catch(function(error) {
-                console.log(error);
+                waiterHide();
                 toast.error("Server process Fail");
             })
     }
@@ -70,6 +124,8 @@ class Posts extends React.Component {
             }
         }
         await axios.get(global.config.server_url + "/posts", Config).then(response => {
+            console.log("------ this is init data -------");
+            console.log(response.data);
             this.setState({ posts: response.data })
         })
     }
@@ -95,13 +151,13 @@ class Posts extends React.Component {
 
             axios.get(global.config.server_url + "/getAllLevelChildIds?parent_id="+comment_id, Config).then(response =>{
                 if(response.data.child_ids != null && response.data.child_ids.length > 0){
-                    response.data.child_ids.forEach(child_comment_id =>{
+                    response.data.child_ids.forEach(reply_comment_id =>{
 
-                        var child_element_index = this.state.opened_childcomment_ids.indexOf(child_comment_id);
+                        var child_element_index = this.state.opened_childcomment_ids.indexOf(reply_comment_id);
                         if(child_element_index > -1){
                             local_opened_childcomments_ids.splice(child_element_index, 1);
 
-                            var removeIndex = local_opened_childcomments.map(item => item.comment_id).indexOf(child_comment_id);
+                            var removeIndex = local_opened_childcomments.map(item => item.comment_id).indexOf(reply_comment_id);
                             ~removeIndex && local_opened_childcomments.splice(removeIndex, 1);
                         }
                     })
@@ -143,19 +199,22 @@ class Posts extends React.Component {
             });;
         }
     }
-    toggleModal = (comment_id, depth) => {
+    toggleModal = (comment_id, depth, post_id, parent_id) => {
         this.setState(prevState => ({
             modal: !prevState.modal,
-            child_comment_id: comment_id,
-            child_comment_depth: depth
+            reply_comment_post_id: post_id,
+            reply_comment_id: comment_id,
+            reply_comment_depth: depth,
+            reply_comment_parent_id: parent_id
         }));
     }
-    onPostComment = e => {
+    onPostReplyComment = e => {
         e.preventDefault();
-        this.submitChildComment(this.state);
+        this.submitReplyComment(this.state);
     }
-    submitChildComment(component_state) {
+    submitReplyComment(component_state) {
         waiterShow();
+
         const Config = {
             headers: {
                 Authorization: "Bearer " + localStorage.getItem("token")
@@ -164,16 +223,63 @@ class Posts extends React.Component {
 
         axios.post(global.config.server_url + "/comments",{
 
-            parent_id:component_state.child_comment_id,
-            comment: component_state.child_comment,
+            parent_id:component_state.reply_comment_id,
+            comment: component_state.reply_comment,
             user_id: localStorage.getItem("user_id"),
             political_party_id: localStorage.getItem("political_party"),
-            depth: parseInt(component_state.child_comment_depth) + 1
+            depth: parseInt(component_state.reply_comment_depth) + 1
 
         }, Config).then(response => {
+
             waiterHide();
-            console.log(response.data);
-            // this.setState({ posts: response.data })
+            var parent_id = component_state.reply_comment_id;
+            var local_opened_childcomment_ids = this.state.opened_childcomment_ids;
+            var local_opened_childcomments= this.state.opened_childcomments;
+
+            var parent_index = local_opened_childcomment_ids.indexOf(parent_id);
+
+            if(parent_index > -1){
+                var parent_comment = local_opened_childcomments.find(child_comment =>{
+                    return child_comment.comment_id == parent_id
+                });
+                parent_comment['data'].push(response.data);
+
+            }else{
+                this.onShowChildComments(parent_id);
+            }
+
+            // ----------- change the reply count of the comment -----------
+            if(this.state.reply_comment_depth == 1){
+                // change the child_count of comment by finding the comment(depth = 1) in the posts
+
+                var selected_post = this.state.posts.find(item =>{
+                    return item.id == this.state.reply_comment_post_id
+                });
+
+                var selected_comment = selected_post.comments.find(item=>{
+                    return item.id == this.state.reply_comment_id;
+                });
+                selected_comment.child_count = selected_comment.child_count + 1;
+
+            }else{
+
+                //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+                console.log(this.state.reply_comment_parent_id);
+                console.log(this.state.opened_childcomments);
+                var parent_comment = this.state.opened_childcomments.find(item=>{
+                    return item.id = this.state.reply_comment_parent_id
+                });
+                if(parent_comment){
+                    var current_comment = parent_comment.data.find(item=>{
+                        return item.id = this.state.reply_comment_id;
+                    });
+                    current_comment.child_count = current_comment.child_count + 1;
+                }
+            }
+
+            // close the modal after adding new comment
+            var modal_status = this.state.modal;
+            this.setState({modal: !modal_status});
         })
     }
     createChildComments(element_id){
@@ -197,7 +303,7 @@ class Posts extends React.Component {
                                 <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
                                     {comment.point}
                                 <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                                <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth)}}>reply</span>
+                                <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id)}}>reply</span>
                             </div>
                         </div>
                         {comment.child_count != null && comment.child_count > 0 &&
@@ -219,8 +325,35 @@ class Posts extends React.Component {
         return (
         <>
             <React.Fragment>
+                <Card>
+                    <CardBody>
+                        <fieldset className="form-label-group mb-50" style={{marginTop: '10px'}}>
+                            <Input
+                                type="textarea"
+                                rows="2"
+                                placeholder="State your political opinion here!"
+                                id="title"
+                                onChange={e => this.setState({title: e.target.value })}
+                            />
+                            <Label for="add-comment">Title</Label>
+                        </fieldset>
+                        <fieldset className="form-label-group mb-50" style={{marginTop: '30px'}}>
+                            <Input
+                                type="textarea"
+                                rows="5"
+                                placeholder="Brief justification for your opinion (optional)"
+                                id="content"
+                                onChange={e => this.setState({contents: e.target.value })}
+                            />
+                            <Label for="add-comment">Content</Label>
+                        </fieldset>
+                        <Button.Ripple size="sm" color="primary" onClick={this.onCreatePost}>
+                            Post
+                        </Button.Ripple>
+                    </CardBody>
+                </Card>
                 {this.state.posts.map((post) => (
-                    <Card style={{background: '#ffcccc'}}>
+                    <Card style={{background: post.political_party_id == 1?'#ffcccc':'#c1c1ff'}}>
                         <CardBody>
                             <div className="d-flex justify-content-start align-items-center mb-1">
                                 <div className="avatar mr-1">
@@ -237,9 +370,9 @@ class Posts extends React.Component {
                                 </div>
 
                             </div>
-                            <h3>
+                            <div style={{whiteSpace: 'pre-wrap', fontWeight:'bold', fontSize:'16px'}}>
                                 {post.title}
-                            </h3>
+                            </div>
                             <div style={{textAlign: 'center', marginBottom: '20px', marginTop: '15px'}}>
                                 <div style={{
                                     display: 'inline-block',
@@ -262,29 +395,32 @@ class Posts extends React.Component {
                                 }}>55%
                                 </div>
                             </div>
-                            <h5>
+                            <div style={{whiteSpace: 'pre-wrap'}}>
                                 {post.contents}
-                            </h5>
+                            </div>
                             <fieldset className="form-label-group mb-50 mt-2">
                                 <Input
                                     type="textarea"
                                     rows="3"
                                     placeholder="Add Comment"
-                                    id="add-comment"
-                                    style={{background: '#fde0e0', borderColor: '#f5c2c2'}}
+                                    id={"input-comment"+post.id}
+                                    style={{background: post.political_party_id == 1?'#fde0e0':'#e0e0f8', borderColor: post.political_party_id == 1?'#f5c2c2':'#c1c1ff'}}
                                     onChange={e=>this.setState({comment: e.target.value})}
                                 />
                                 <Label for="add-comment">Add Comment</Label>
                             </fieldset>
-                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment}>
+                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment(post.id)}>
                                 Post Comment
                             </Button.Ripple>
                             <div className="d-flex justify-content-start align-items-center mb-1">
                                 <div className="d-flex align-items-center">
-                                    {post.total_point}
+                                    {post.comment_count? post.comment_count: 0} comments
                                 </div>
                                 <div className="ml-2">
                                     <ul className="list-unstyled users-list m-0 d-flex">
+                                        {(() => {
+
+                                        })()}
                                         {post.comments.map((comment) => (
                                             <li className="avatar pull-up">
                                                 <img
@@ -303,7 +439,7 @@ class Posts extends React.Component {
                                 </div>
                                 <p className="ml-auto">
                                     <ThumbsUp size={22} className="mr-50"/>
-                                    77
+                                    {post.total_point}
                                 </p>
                             </div>
                             {post.comments.map((comment) => (
@@ -320,7 +456,7 @@ class Posts extends React.Component {
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
                                             {comment.point}
                                             <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth)}}>reply</span>
+                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id)}}>reply</span>
                                         </div>
                                     </div>
                                     {comment.child_count != null && comment.child_count > 0 &&
@@ -338,502 +474,6 @@ class Posts extends React.Component {
                         </CardBody>
                     </Card>
                 ))}
-                <Card style={{background: '#c1c1ff'}}>
-                    <CardBody>
-                        <div className="d-flex justify-content-start align-items-center mb-1">
-                            <div className="avatar mr-1">
-                                <img
-                                    src={profileImg}
-                                    alt="avtar img holder"
-                                    height="45"
-                                    width="45"
-                                />
-                            </div>
-                            <div className="user-page-info">
-                                <p className="mb-0">Leeanna Alvord</p>
-                                <span className="font-small-2">12 Dec 2018 at 1:16 AM</span>
-                            </div>
-                        </div>
-                        <h3>
-                            The wall on the southern border was unnecessary
-                        </h3>
-                        <div style={{textAlign: 'center', marginBottom: '20px', marginTop: '15px'}}>
-                            <div style={{
-                                display: 'inline-block',
-                                color: '#ffffff',
-                                fontWeight: 'bold',
-                                paddingTop: '10px',
-                                height: '40px',
-                                width: '45%',
-                                background: 'red'
-                            }}>45%
-                            </div>
-                            <div style={{
-                                display: 'inline-block',
-                                color: '#ffffff',
-                                fontWeight: 'bold',
-                                paddingTop: '10px',
-                                height: '40px',
-                                width: '55%',
-                                background: 'blue'
-                            }}>55%
-                            </div>
-                        </div>
-                        <h5>
-                            Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration
-                            has declined since 2007.
-                        </h5>
-                        <fieldset className="form-label-group mb-50 mt-2">
-                            <Input
-                                type="textarea"
-                                rows="3"
-                                placeholder="Add Comment"
-                                id="add-comment"
-                                style={{background: '#e0e0f8', borderColor: '#c1c1ff'}}
-                            />
-                            <Label for="add-comment">Add Comment</Label>
-                        </fieldset>
-                        <Button.Ripple size="sm" color="primary" className="mb-2">
-                            Post Comment
-                        </Button.Ripple>
-                        <div className="d-flex justify-content-start align-items-center mb-1">
-                            <div className="d-flex align-items-center">
-                                145
-                            </div>
-                            <div className="ml-2">
-                                <ul className="list-unstyled users-list m-0 d-flex">
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person1}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar13"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar13">
-                                            Lai Lewandowski
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person2}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar14"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar14">
-                                            Elicia Rieske
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person3}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar15"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar15">
-                                            Alberto Glotzbach
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person4}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar16"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar16">
-                                            George Nordic
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person5}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar17"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar17">
-                                            Vinnie Mostowy
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="d-flex align-items-center pl-50">
-                                        <span className="align-middle">+140 more</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <p className="ml-auto">
-                                <ThumbsUp size={22} className="mr-50"/>
-                                77
-                            </p>
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1">
-                            <div className="avatar mr-50">
-                                <img src={person6} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Kitty Allanson</h6>
-                                <span className="font-small-2">
-                  orthoplumbate morningtide naphthaline exarteritis
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                15
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '20px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person2} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Sonata Allanson</h6>
-                                <span className="font-small-2">
-                  orthoplumbate morningtide naphthaline exarteritis
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                25
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '20px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person5} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Gilbert Jordan</h6>
-                                <span className="font-small-2">
-                  Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration has declined since 2007.
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                46
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '60px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person6} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Sonya Alex</h6>
-                                <span className="font-small-2">
-                  Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration has declined since 2007.
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                46
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '60px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person3} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Mario Jordan</h6>
-                                <span className="font-small-2">
-                  Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration has declined since 2007.
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                46
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '20px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person1} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">John Star</h6>
-                                <span className="font-small-2">
-                  orthoplumbate morningtide naphthaline exarteritis
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                35
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-2">
-                            <div className="avatar mr-50">
-                                <img src={person7} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Jeanie Bulgrin</h6>
-                                <span className="font-small-2">
-                  blockiness pandemy metaxylene speckle coppy
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                12
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
-                <Card style={{background: '#c1c1ff'}}>
-                    <CardBody>
-                        <div className="d-flex justify-content-start align-items-center mb-1">
-                            <div className="avatar mr-1">
-                                <img
-                                    src={profileImg}
-                                    alt="avtar img holder"
-                                    height="45"
-                                    width="45"
-                                />
-                            </div>
-                            <div className="user-page-info">
-                                <p className="mb-0">Leeanna Alvord</p>
-                                <span className="font-small-2">12 Dec 2018 at 1:16 AM</span>
-                            </div>
-                        </div>
-                        <h3>
-                            The wall on the southern border was unnecessary
-                        </h3>
-                        <div style={{textAlign: 'center', marginBottom: '20px', marginTop: '15px'}}>
-                            <div style={{
-                                display: 'inline-block',
-                                color: '#ffffff',
-                                fontWeight: 'bold',
-                                paddingTop: '10px',
-                                height: '40px',
-                                width: '45%',
-                                background: 'red'
-                            }}>45%
-                            </div>
-                            <div style={{
-                                display: 'inline-block',
-                                color: '#ffffff',
-                                fontWeight: 'bold',
-                                paddingTop: '10px',
-                                height: '40px',
-                                width: '55%',
-                                background: 'blue'
-                            }}>55%
-                            </div>
-                        </div>
-                        <h5>
-                            Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration
-                            has declined since 2007.
-                        </h5>
-                        <fieldset className="form-label-group mb-50 mt-2">
-                            <Input
-                                type="textarea"
-                                rows="3"
-                                placeholder="Add Comment"
-                                id="add-comment"
-                                style={{background: '#e0e0f8', borderColor: '#c1c1ff'}}
-                            />
-                            <Label for="add-comment">Add Comment</Label>
-                        </fieldset>
-                        <Button.Ripple size="sm" color="primary" className="mb-2">
-                            Post Comment
-                        </Button.Ripple>
-                        <div className="d-flex justify-content-start align-items-center mb-1">
-                            <div className="d-flex align-items-center">
-                                145
-                            </div>
-                            <div className="ml-2">
-                                <ul className="list-unstyled users-list m-0 d-flex">
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person1}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar13"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar13">
-                                            Lai Lewandowski
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person2}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar14"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar14">
-                                            Elicia Rieske
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person3}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar15"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar15">
-                                            Alberto Glotzbach
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person4}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar16"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar16">
-                                            George Nordic
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="avatar pull-up">
-                                        <img
-                                            src={person5}
-                                            alt="avatar"
-                                            height="30"
-                                            width="30"
-                                            id="avatar17"
-                                        />
-                                        <UncontrolledTooltip placement="bottom" target="avatar17">
-                                            Vinnie Mostowy
-                                        </UncontrolledTooltip>
-                                    </li>
-                                    <li className="d-flex align-items-center pl-50">
-                                        <span className="align-middle">+140 more</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <p className="ml-auto">
-                                <ThumbsUp size={22} className="mr-50"/>
-                                77
-                            </p>
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1">
-                            <div className="avatar mr-50">
-                                <img src={person6} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Kitty Allanson</h6>
-                                <span className="font-small-2">
-                  orthoplumbate morningtide naphthaline exarteritis
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                15
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '20px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person2} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Sonata Allanson</h6>
-                                <span className="font-small-2">
-                  orthoplumbate morningtide naphthaline exarteritis
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                25
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '20px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person5} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Gilbert Jordan</h6>
-                                <span className="font-small-2">
-                  Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration has declined since 2007.
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                46
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '60px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person6} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Sonya Alex</h6>
-                                <span className="font-small-2">
-                  Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration has declined since 2007.
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                46
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '60px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person3} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Mario Jordan</h6>
-                                <span className="font-small-2">
-                  Donald Trump spent 3.6 billion dollars on the southern border wall, but illegal immigration has declined since 2007.
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                46
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-1"
-                             style={{marginLeft: '20px'}}>
-                            <CornerDownRight className="mr-50" size={25} style={{marginLeft: '15px'}}/>
-                            <div className="avatar mr-50">
-                                <img src={person1} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">John Star</h6>
-                                <span className="font-small-2">
-                  orthoplumbate morningtide naphthaline exarteritis
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                35
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-                        </div>
-                        <div className="d-flex justify-content-start align-items-center mb-2">
-                            <div className="avatar mr-50">
-                                <img src={person7} alt="Avatar" height="30" width="30"/>
-                            </div>
-                            <div className="user-page-info">
-                                <h6 className="mb-0">Jeanie Bulgrin</h6>
-                                <span className="font-small-2">
-                  blockiness pandemy metaxylene speckle coppy
-                </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
-                                12
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
-                            </div>
-                        </div>
-                    </CardBody>
-                </Card>
             </React.Fragment>
                 <Modal
                     isOpen={this.state.modal}
@@ -845,18 +485,18 @@ class Posts extends React.Component {
                     </ModalHeader>
                     <ModalBody>
                         <FormGroup>
-                            <Label for="child_comment">Comment:</Label>
+                            <Label for="reply_comment">Comment:</Label>
                             <Input
                                 type="textarea"
                                 rows="5"
                                 placeholder="Add Comment"
-                                id="child_comment"
-                                onChange={e=> this.setState({child_comment:e.target.value})}
+                                id="reply_comment"
+                                onChange={e=> this.setState({reply_comment:e.target.value})}
                             />
                         </FormGroup>
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="primary" onClick={this.onPostComment}>
+                        <Button color="primary" onClick = {this.onPostReplyComment}>
                             Commit
                         </Button>{" "}
                     </ModalFooter>
