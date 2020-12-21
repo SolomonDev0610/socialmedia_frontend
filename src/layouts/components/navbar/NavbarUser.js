@@ -390,6 +390,7 @@ class NavbarUser extends React.PureComponent {
             </div>
           </div>
         </NavItem>
+
         {/*<UncontrolledDropdown*/}
         {/*  tag="li"*/}
         {/*  className="dropdown-notification nav-item"*/}

@@ -91,7 +91,9 @@ class Posts extends React.Component {
             }
         }
         axios.post(global.config.server_url + "/comments", {
+            created_at: new Date(),
             post_id: post_id,
+            join_post_id: post_id,
             parent_id: 0,
             depth: 1,
             comment: info.comment,
@@ -107,6 +109,7 @@ class Posts extends React.Component {
 
                 current_post.comments.unshift(response.data);
                 current_post.comment_count = current_post.comment_count + 1;
+
                 this.setState({comment: ''});
                 document.getElementById("input-comment"+post_id).value="";
                 this.setState({posts: tmp_posts});
@@ -222,13 +225,13 @@ class Posts extends React.Component {
         }
 
         axios.post(global.config.server_url + "/comments",{
-
+            created_at: new Date(),
+            post_id: component_state.reply_comment_post_id,
             parent_id:component_state.reply_comment_id,
             comment: component_state.reply_comment,
             user_id: localStorage.getItem("user_id"),
             political_party_id: localStorage.getItem("political_party"),
-            depth: parseInt(component_state.reply_comment_depth) + 1
-
+            depth: parseInt(component_state.reply_comment_depth) + 1,
         }, Config).then(response => {
 
             waiterHide();
@@ -242,7 +245,7 @@ class Posts extends React.Component {
                 var parent_comment = local_opened_childcomments.find(child_comment =>{
                     return child_comment.comment_id == parent_id
                 });
-                parent_comment['data'].push(response.data);
+                parent_comment['data'].unshift(response.data);
 
             }else{
                 this.onShowChildComments(parent_id);
@@ -264,14 +267,13 @@ class Posts extends React.Component {
             }else{
 
                 //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
-                console.log(this.state.reply_comment_parent_id);
-                console.log(this.state.opened_childcomments);
-                var parent_comment = this.state.opened_childcomments.find(item=>{
-                    return item.id = this.state.reply_comment_parent_id
+                var tmp_opened_childcomments = this.state.opened_childcomments;
+                var parent_comment = tmp_opened_childcomments.find(item=>{
+                    return item.comment_id == this.state.reply_comment_parent_id
                 });
                 if(parent_comment){
                     var current_comment = parent_comment.data.find(item=>{
-                        return item.id = this.state.reply_comment_id;
+                        return item.id == this.state.reply_comment_id;
                     });
                     current_comment.child_count = current_comment.child_count + 1;
                 }
@@ -300,9 +302,9 @@ class Posts extends React.Component {
                                 <span className="font-small-2">
                                     {comment.comment}
                                 </span>
-                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
+                                <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                     {comment.point}
-                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
+                                <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                 <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id)}}>reply</span>
                             </div>
                         </div>
@@ -320,6 +322,133 @@ class Posts extends React.Component {
                 ))}
             </>
         );
+    }
+
+    onUpVote(comment_id, depth, post_id, parent_id, comment_political_party){
+        waiterShow();
+        var add_point = 0;
+        if(comment_political_party != localStorage.getItem("political_party"))
+            add_point = 4;
+        else
+            add_point = 1;
+
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+
+        axios.post(global.config.server_url + "/upVote",{
+            post_id: post_id,
+            comment_id: comment_id,
+            add_point: add_point,
+        }, Config).then(response => {
+            waiterHide();
+            // ----------- change the point of the comment -----------
+            if(depth == 1){
+                // change the point of comment by finding the comment(depth = 1) in the posts
+                var tmp_posts = this.state.posts;
+                var selected_post = tmp_posts.find(item =>{
+                    return item.id == post_id
+                });
+                var selected_comment = selected_post.comments.find(item=>{
+                    return item.id == comment_id;
+                });
+                selected_comment.point = selected_comment.point + add_point;
+
+                this.setState({posts: tmp_posts});
+            }else{
+                //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+
+                var tmp_opened_childcomments = this.state.opened_childcomments;
+                var parent_comment = tmp_opened_childcomments.find(item=>{
+                    return item.comment_id == parent_id
+                });
+                if(parent_comment){
+                    var current_comment = parent_comment.data.find(item=>{
+                        return item.id == comment_id;
+                    });
+                    current_comment.point = current_comment.point + add_point;
+                }
+                this.setState({opened_childcomments: tmp_opened_childcomments});
+            }
+            this.onRefreshScore(post_id);
+        })
+    }
+    onDownVote(comment_id, depth, post_id, parent_id, comment_political_party){
+        if(comment_political_party == localStorage.getItem("political_party")){
+            waiterShow();
+            var add_point = -1;
+
+            const Config = {
+                headers: {
+                    Authorization: "Bearer " + localStorage.getItem("token")
+                }
+            }
+
+            axios.post(global.config.server_url + "/upVote",{
+                post_id: post_id,
+                comment_id: comment_id,
+                add_point: add_point,
+            }, Config).then(response => {
+                waiterHide();
+                // ----------- change the point of the comment -----------
+                if(depth == 1){
+                    // change the point of comment by finding the comment(depth = 1) in the posts
+                    var tmp_posts = this.state.posts;
+                    var selected_post = tmp_posts.find(item =>{
+                        return item.id == post_id
+                    });
+                    var selected_comment = selected_post.comments.find(item=>{
+                        return item.id == comment_id;
+                    });
+                    selected_comment.point = selected_comment.point + add_point;
+
+                    this.setState({posts: tmp_posts});
+                }else{
+                    //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+
+                    var tmp_opened_childcomments = this.state.opened_childcomments;
+                    var parent_comment = tmp_opened_childcomments.find(item=>{
+                        return item.comment_id == parent_id
+                    });
+                    if(parent_comment){
+                        var current_comment = parent_comment.data.find(item=>{
+                            return item.id == comment_id;
+                        });
+                        current_comment.point = current_comment.point + add_point;
+                    }
+                    this.setState({opened_childcomments: tmp_opened_childcomments});
+                }
+            })
+            this.onRefreshScore(post_id);
+        }
+    }
+    onRefreshScore(post_id){
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+        axios.get(global.config.server_url + "/get_scores_by_party?post_id="+post_id, Config).then(response => {
+
+            var point1 = response.data.republican_total_score;
+            var point2= response.data.democratic_total_score;
+            point1 = point1? parseInt(point1) : 0;
+            point2 = point2? parseInt(point2) : 0;
+            var total_point = point1 + point2;
+
+            var tmp_posts = this.state.posts;
+            var current_post = tmp_posts.find(item=>{
+                return item.id == post_id
+            });
+
+            current_post.total_point = total_point;
+            current_post.point1 = point1;
+            current_post.point2 = point2;
+
+            this.setState({posts: tmp_posts});
+        })
     }
     render() {
         return (
@@ -374,26 +503,48 @@ class Posts extends React.Component {
                                 {post.title}
                             </div>
                             <div style={{textAlign: 'center', marginBottom: '20px', marginTop: '15px'}}>
-                                <div style={{
-                                    display: 'inline-block',
-                                    color: '#ffffff',
-                                    fontWeight: 'bold',
-                                    paddingTop: '10px',
-                                    height: '40px',
-                                    width: '45%',
-                                    background: 'red'
-                                }}>45%
-                                </div>
-                                <div style={{
-                                    display: 'inline-block',
-                                    color: '#ffffff',
-                                    fontWeight: 'bold',
-                                    paddingTop: '10px',
-                                    height: '40px',
-                                    width: '55%',
-                                    background: 'blue'
-                                }}>55%
-                                </div>
+                                {(() => {
+                                    if(post.total_point == null || post.total_point == 0 ){
+                                        return <div style={{
+                                                display: 'inline-block',
+                                                color: '#ffffff',
+                                                fontWeight: 'bold',
+                                                paddingTop: '10px',
+                                                height: '40px',
+                                                width: '100%',
+                                                background: post.political_party_id == 1?'red':'blue'}}>100%</div>;
+                                    }else{
+                                        var point1 = Math.floor((post.point1/post.total_point) * 100);
+                                        var point2 = 100 - point1;
+                                        return <>
+                                            {point1 > 0 &&
+                                                <div style={{
+                                                display: 'inline-block',
+                                                color: '#ffffff',
+                                                fontWeight: 'bold',
+                                                paddingTop: '10px',
+                                                height: '40px',
+                                                width: point1+'%',
+                                                background: 'red'}}>
+                                                    {point1}%
+                                                </div>
+                                            }
+                                            {point2 > 0 &&
+                                                <div style={{
+                                                    display: 'inline-block',
+                                                    color: '#ffffff',
+                                                    fontWeight: 'bold',
+                                                    paddingTop: '10px',
+                                                    height: '40px',
+                                                    width: point2 + '%',
+                                                    background: 'blue'
+                                                }}>
+                                                    {point2}%
+                                                </div>
+                                            }
+                                            </>;
+                                    }
+                                })()}
                             </div>
                             <div style={{whiteSpace: 'pre-wrap'}}>
                                 {post.contents}
@@ -453,9 +604,9 @@ class Posts extends React.Component {
                                             <span className="font-small-2">
                                               {comment.comment}
                                             </span>
-                                            <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px'}}/>
+                                            <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                             {comment.point}
-                                            <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px'}}/>
+                                            <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                             <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id)}}>reply</span>
                                         </div>
                                     </div>
