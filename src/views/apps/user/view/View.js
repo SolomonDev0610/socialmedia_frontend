@@ -63,7 +63,6 @@ function UserView() {
         axios.post(global.config.server_url + "/saveUserInfo", {
             user_id: localStorage.getItem("user_id"),
             username: username,
-            political_party: politicalParty,
         }, Config)
             .then(response => {
                 toast.info("Save Success!");
@@ -113,7 +112,7 @@ function UserView() {
                                     <div>
                                         <input {...getInputProps()} />
                                         <Button.Ripple color="primary" outline className="my-1" onClick={open}>
-                                            Change Profile
+                                            change profile picture.
                                         </Button.Ripple>
                                     </div>
                                 </Col>
@@ -133,20 +132,17 @@ function UserView() {
                                     <Row>
                                         <FormGroup>
                                             <Label for="name">Political Party</Label>
-                                            {politicalParty &&
+                                            { politicalParty == 1 &&
                                                 <CustomInput type="select" name="political_party"
-                                                             defaultValue={politicalParty}
-                                                             onChange={e => setPoliticalParty(e.target.value)}>
+                                                             defaultValue={politicalParty}>
                                                     <option value="1">Republican</option>
-                                                    <option value="2">Democrat</option>
                                                 </CustomInput>
                                             }
-                                            {politicalParty == null &&
-                                                <CustomInput type="select" name="political_party"
-                                                             onChange={e => setPoliticalParty(e.target.value)}>
-                                                    <option value="1">Republican</option>
-                                                    <option value="2">Democrat</option>
-                                                </CustomInput>
+                                            { politicalParty == 2 &&
+                                            <CustomInput type="select" name="political_party"
+                                                         defaultValue={politicalParty}>
+                                                <option value="2">Democrat</option>
+                                            </CustomInput>
                                             }
                                         </FormGroup>
                                     </Row>

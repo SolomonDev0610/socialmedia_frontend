@@ -13,7 +13,7 @@ class AboutCard extends React.Component {
           <MoreHorizontal size={15} className="cursor-pointer" />
         </CardHeader>
         <CardBody>
-          <p>
+          <p style={{color:localStorage.getItem("political_party") == 1?"red":"blue"}}>
             {localStorage.getItem('username')}
           </p>
           <div className="mt-1">

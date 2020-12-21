@@ -282,6 +282,10 @@ class Posts extends React.Component {
             // close the modal after adding new comment
             var modal_status = this.state.modal;
             this.setState({modal: !modal_status});
+        }).catch(error => {
+            waiterHide();
+            console.log(error);
+            toast.error("API Not Reply.")
         })
     }
     createChildComments(element_id){
@@ -293,7 +297,7 @@ class Posts extends React.Component {
                         <div className="d-flex justify-content-start align-items-center mt-1"
                              style={{marginLeft: (comment.depth - 1) * 40 + 'px'}}>
                             <div className="avatar mr-50">
-                                <img src={comment.user.image} alt="Avatar" height="30" width="30"/>
+                                <img src={comment.user.image? comment.user.image: defaultImage} alt="Avatar" height="30" width="30"/>
                             </div>
                             <div className="user-page-info">
                                 <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>
@@ -339,60 +343,14 @@ class Posts extends React.Component {
         }
 
         axios.post(global.config.server_url + "/upVote",{
+            user_id: localStorage.getItem('user_id'),
             post_id: post_id,
             comment_id: comment_id,
             add_point: add_point,
         }, Config).then(response => {
             waiterHide();
             // ----------- change the point of the comment -----------
-            if(depth == 1){
-                // change the point of comment by finding the comment(depth = 1) in the posts
-                var tmp_posts = this.state.posts;
-                var selected_post = tmp_posts.find(item =>{
-                    return item.id == post_id
-                });
-                var selected_comment = selected_post.comments.find(item=>{
-                    return item.id == comment_id;
-                });
-                selected_comment.point = selected_comment.point + add_point;
-
-                this.setState({posts: tmp_posts});
-            }else{
-                //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
-
-                var tmp_opened_childcomments = this.state.opened_childcomments;
-                var parent_comment = tmp_opened_childcomments.find(item=>{
-                    return item.comment_id == parent_id
-                });
-                if(parent_comment){
-                    var current_comment = parent_comment.data.find(item=>{
-                        return item.id == comment_id;
-                    });
-                    current_comment.point = current_comment.point + add_point;
-                }
-                this.setState({opened_childcomments: tmp_opened_childcomments});
-            }
-            this.onRefreshScore(post_id);
-        })
-    }
-    onDownVote(comment_id, depth, post_id, parent_id, comment_political_party){
-        if(comment_political_party == localStorage.getItem("political_party")){
-            waiterShow();
-            var add_point = -1;
-
-            const Config = {
-                headers: {
-                    Authorization: "Bearer " + localStorage.getItem("token")
-                }
-            }
-
-            axios.post(global.config.server_url + "/upVote",{
-                post_id: post_id,
-                comment_id: comment_id,
-                add_point: add_point,
-            }, Config).then(response => {
-                waiterHide();
-                // ----------- change the point of the comment -----------
+            if(response.data.data == "success"){
                 if(depth == 1){
                     // change the point of comment by finding the comment(depth = 1) in the posts
                     var tmp_posts = this.state.posts;
@@ -420,6 +378,66 @@ class Posts extends React.Component {
                     }
                     this.setState({opened_childcomments: tmp_opened_childcomments});
                 }
+                this.onRefreshScore(post_id);
+            }
+        }).catch(error => {
+            waiterHide();
+            console.log(error);
+            toast.error("API Not Reply.")
+        })
+    }
+    onDownVote(comment_id, depth, post_id, parent_id, comment_political_party){
+        if(comment_political_party == localStorage.getItem("political_party")){
+            waiterShow();
+            var add_point = -1;
+
+            const Config = {
+                headers: {
+                    Authorization: "Bearer " + localStorage.getItem("token")
+                }
+            }
+
+            axios.post(global.config.server_url + "/upVote",{
+                user_id: localStorage.getItem('user_id'),
+                post_id: post_id,
+                comment_id: comment_id,
+                add_point: add_point,
+            }, Config).then(response => {
+                waiterHide();
+                // ----------- change the point of the comment -----------
+                if(response.data.data == "success") {
+                    if (depth == 1) {
+                        // change the point of comment by finding the comment(depth = 1) in the posts
+                        var tmp_posts = this.state.posts;
+                        var selected_post = tmp_posts.find(item => {
+                            return item.id == post_id
+                        });
+                        var selected_comment = selected_post.comments.find(item => {
+                            return item.id == comment_id;
+                        });
+                        selected_comment.point = selected_comment.point + add_point;
+
+                        this.setState({posts: tmp_posts});
+                    } else {
+                        //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+
+                        var tmp_opened_childcomments = this.state.opened_childcomments;
+                        var parent_comment = tmp_opened_childcomments.find(item => {
+                            return item.comment_id == parent_id
+                        });
+                        if (parent_comment) {
+                            var current_comment = parent_comment.data.find(item => {
+                                return item.id == comment_id;
+                            });
+                            current_comment.point = current_comment.point + add_point;
+                        }
+                        this.setState({opened_childcomments: tmp_opened_childcomments});
+                    }
+                }
+            }).catch(error => {
+                waiterHide();
+                console.log(error);
+                toast.error("API Not Reply.")
             })
             this.onRefreshScore(post_id);
         }

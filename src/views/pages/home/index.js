@@ -43,7 +43,7 @@ class Index extends React.Component {
             <Row>
               <Col lg="3" md="12">
                 <AboutCard />
-                <SuggestedPages />
+                {/*<SuggestedPages />*/}
               </Col>
               <Col lg="9" md="12">
                 <PostCreator />
