@@ -25,9 +25,34 @@ import {toast} from "react-toastify";
 import {history} from "../../../history";
 import {waiterHide, waiterShow} from "../../../../src/helpers/waiter";
 import {now} from "moment";
-
+import SweetAlert from "react-bootstrap-sweetalert";
+import { connect } from "react-redux"
+import {
+    getPosts,
+} from "../../../redux/actions/post/index"
+import postModel from '../../../firebase/postModel'
+var unsubscribe;
 class Posts extends React.Component {
+
+    static getDerivedStateFromProps(props, state) {
+
+        if (props.filter == "search") {
+            return {
+                pageKind:'search',
+                posts: props.app.post.posts
+            }
+        }else if(state.pageKind == "search" && props.filter == "main"){
+            window.location.reload();
+            // window.location.reload();
+        }
+        // Return null if the state hasn't changed
+        return null
+    }
+
     state = {
+        postPoints:null,
+        pageKind:'',
+        confirmAlert:false,
         title : "",
         contents : "",
         posts: [],
@@ -46,6 +71,7 @@ class Posts extends React.Component {
         e.preventDefault();
         this.submitPost(this.state);
     }
+
     submitPost (info){
         waiterShow();
         const Config = {
@@ -72,6 +98,16 @@ class Posts extends React.Component {
                 this.setState({contents: ''});
                 document.getElementById("title").value="";
                 document.getElementById("content").value="";
+
+                //------- add post into firebase
+                let data = {
+                    post_id: response.data.id,
+                    total_point: 0,
+                };
+                postModel.create(data)
+                    .then(() => { })
+                    .catch((e) => { console.log(e); });
+
             })
             .catch(function(error) {
                 console.log(error);
@@ -79,8 +115,11 @@ class Posts extends React.Component {
             })
     }
 
-    onCreateComment (post_id) {
-        this.submitComment(this.state, post_id);
+    onCreateComment (post_id, political_party_id) {
+        if(political_party_id != localStorage.getItem("political_party"))
+            this.submitComment(this.state, post_id);
+        else
+            this.setState({confirmAlert:true});
     }
     submitComment (info, post_id){
         waiterShow();
@@ -120,17 +159,42 @@ class Posts extends React.Component {
             })
     }
 
+    onGetAllPost(items) {
+        let array = [];
+        items.forEach((item) => {
+            let id = item.id;
+            let data = item.data();
+            array.push({
+                post_id: data.post_id,
+                point1: data.point1,
+                point2: data.point2,
+                total_point: data.total_point,
+            });
+        });
+        console.log(array);
+        this.setState({postPoints: array});
+    }
+
     async componentDidMount() {
-        const Config = {
-            headers: {
-                Authorization: "Bearer " + localStorage.getItem("token")
-            }
-        }
-        await axios.get(global.config.server_url + "/posts", Config).then(response => {
-            console.log("------ this is init data -------");
-            console.log(response.data);
-            this.setState({ posts: response.data })
+        this.onGetAllPost = this.onGetAllPost.bind(this);
+
+        unsubscribe = postModel.getAll().onSnapshot(this.onGetAllPost); //Planed Reports count
+        if(this.props.filter == "main")
+            await this.props.getPosts();
+
+        this.setState({
+            posts: this.props.app.post.posts,
         })
+        // const Config = {
+        //     headers: {
+        //         Authorization: "Bearer " + localStorage.getItem("token")
+        //     }
+        // }
+        // await axios.get(global.config.server_url + "/posts", Config).then(response => {
+        //     console.log("------ this is init data -------");
+        //     console.log(response.data);
+        //     this.setState({ posts: response.data })
+        // })
     }
 
     onShowChildComments(comment_id){
@@ -202,14 +266,17 @@ class Posts extends React.Component {
             });;
         }
     }
-    toggleModal = (comment_id, depth, post_id, parent_id) => {
-        this.setState(prevState => ({
-            modal: !prevState.modal,
-            reply_comment_post_id: post_id,
-            reply_comment_id: comment_id,
-            reply_comment_depth: depth,
-            reply_comment_parent_id: parent_id
-        }));
+    toggleModal = (comment_id, depth, post_id, parent_id, political_party_id) => {
+        if(political_party_id != localStorage.getItem("political_party")) {
+            this.setState(prevState => ({
+                modal: !prevState.modal,
+                reply_comment_post_id: post_id,
+                reply_comment_id: comment_id,
+                reply_comment_depth: depth,
+                reply_comment_parent_id: parent_id
+            }));
+        }else
+            this.setState({confirmAlert:true});
     }
     onPostReplyComment = e => {
         e.preventDefault();
@@ -300,16 +367,18 @@ class Posts extends React.Component {
                                 <img src={comment.user.image? comment.user.image: defaultImage} alt="Avatar" height="30" width="30"/>
                             </div>
                             <div className="user-page-info">
-                                <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>
-                                    {comment.user.username}
-                                </h6>
+                                <a onClick={() =>{history.push("/app/user/view/" + comment.user_id);}}>
+                                    <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>
+                                        {comment.user.username}
+                                    </h6>
+                                </a>
                                 <span className="font-small-2">
                                     {comment.comment}
                                 </span>
                                 <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                     {comment.point}
                                 <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
-                                <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id)}}>reply</span>
+                                <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>reply</span>
                             </div>
                         </div>
                         {comment.child_count != null && comment.child_count > 0 &&
@@ -433,13 +502,14 @@ class Posts extends React.Component {
                         }
                         this.setState({opened_childcomments: tmp_opened_childcomments});
                     }
+                    this.onRefreshScore(post_id);
                 }
             }).catch(error => {
                 waiterHide();
                 console.log(error);
                 toast.error("API Not Reply.")
             })
-            this.onRefreshScore(post_id);
+
         }
     }
     onRefreshScore(post_id){
@@ -456,22 +526,47 @@ class Posts extends React.Component {
             point2 = point2? parseInt(point2) : 0;
             var total_point = point1 + point2;
 
-            var tmp_posts = this.state.posts;
-            var current_post = tmp_posts.find(item=>{
-                return item.id == post_id
-            });
-
-            current_post.total_point = total_point;
-            current_post.point1 = point1;
-            current_post.point2 = point2;
-
-            this.setState({posts: tmp_posts});
+            postModel.getOne("post_id", post_id)
+                .then(querySnapshot => {
+                    const data = querySnapshot.docs.map(doc => doc.id);
+                    if(data.length > 0){
+                        let param = {
+                            total_point: total_point,
+                            point1: point1,
+                            point2: point2,
+                        };
+                        postModel.update(data[0], param)
+                            .then(() => {})
+                            .catch((e) => { console.log(e); });
+                    }
+                }, function(error){
+                    console.error(error);
+                });
+            // var tmp_posts = this.state.posts;
+            // var current_post = tmp_posts.find(item=>{
+            //     return item.id == post_id
+            // });
+            //
+            // current_post.total_point = total_point;
+            // current_post.point1 = point1;
+            // current_post.point2 = point2;
+            //
+            // this.setState({posts: tmp_posts});
         })
     }
     render() {
         return (
         <>
             <React.Fragment>
+                <SweetAlert warning title="Warning"
+                            confirmBtnBsStyle="warning"
+                            show={this.state.confirmAlert}
+                            onConfirm={() => {
+                                this.setState({confirmAlert:false});
+                            }}
+                >
+                    <p className="sweet-alert-text">You aren't allow to reply to the comment of the same party</p>
+                </SweetAlert>
                 <Card>
                     <CardBody>
                         <fieldset className="form-label-group mb-50" style={{marginTop: '10px'}}>
@@ -512,7 +607,9 @@ class Posts extends React.Component {
                                     />
                                 </div>
                                 <div className="user-page-info">
-                                    <p className="mb-0" style={{color: post.user.political_party == 1?"red":"blue"}}>{post.user.username}</p>
+                                    <a onClick={() =>{history.push("/app/user/view/" + post.user_id);}}>
+                                        <p className="mb-0" style={{color: post.user.political_party == 1?"red":"blue"}}>{post.user.username}</p>
+                                    </a>
                                     <span className="font-small-2">{dateConvert2(post.created_at)}</span>
                                 </div>
 
@@ -522,7 +619,13 @@ class Posts extends React.Component {
                             </div>
                             <div style={{textAlign: 'center', marginBottom: '20px', marginTop: '15px'}}>
                                 {(() => {
-                                    if(post.total_point == null || post.total_point == 0 ){
+                                    var post_point = null;
+                                    if(this.state.postPoints) {
+                                        post_point = this.state.postPoints.find(post_item => {
+                                            return post_item.post_id == post.id
+                                        });
+                                    }
+                                    if(post_point == null || post_point.total_point == 0){
                                         return <div style={{
                                                 display: 'inline-block',
                                                 color: '#ffffff',
@@ -532,7 +635,7 @@ class Posts extends React.Component {
                                                 width: '100%',
                                                 background: post.political_party_id == 1?'red':'blue'}}>100%</div>;
                                     }else{
-                                        var point1 = Math.floor((post.point1/post.total_point) * 100);
+                                        var point1 = Math.floor((post_point.point1/post_point.total_point) * 100);
                                         var point2 = 100 - point1;
                                         return <>
                                             {point1 > 0 &&
@@ -578,7 +681,7 @@ class Posts extends React.Component {
                                 />
                                 <Label for="add-comment">Add Comment</Label>
                             </fieldset>
-                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment(post.id)}>
+                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment(post.id, post.political_party_id)}>
                                 Post Comment
                             </Button.Ripple>
                             <div className="d-flex justify-content-start align-items-center mb-1">
@@ -606,10 +709,10 @@ class Posts extends React.Component {
                                             ))}
                                     </ul>
                                 </div>
-                                <p className="ml-auto">
-                                    <ThumbsUp size={22} className="mr-50"/>
-                                    {post.total_point}
-                                </p>
+                                {/*<p className="ml-auto">*/}
+                                {/*    <ThumbsUp size={22} className="mr-50"/>*/}
+                                {/*    {post.total_point}*/}
+                                {/*</p>*/}
                             </div>
                             {post.comments.map((comment) => (
                                 <>
@@ -618,14 +721,16 @@ class Posts extends React.Component {
                                             <img src={comment.user.image?comment.user.image:defaultImage} alt="Avatar" height="30" width="30"/>
                                         </div>
                                         <div className="user-page-info">
-                                            <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>{comment.user.username}</h6>
+                                            <a onClick={() =>{history.push("/app/user/view/" + comment.user_id);}}>
+                                                <h6 className="mb-0" style={{color: comment.user.political_party == 1?"red":"blue"}}>{comment.user.username}</h6>
+                                            </a>
                                             <span className="font-small-2">
                                               {comment.comment}
                                             </span>
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                             {comment.point}
                                             <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
-                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id)}}>reply</span>
+                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>reply</span>
                                         </div>
                                     </div>
                                     {comment.child_count != null && comment.child_count > 0 &&
@@ -674,5 +779,12 @@ class Posts extends React.Component {
         )
     }
 }
+const mapStateToProps = state => {
+    return {
+        app: state.postApp
+    }
+}
+export default connect(mapStateToProps, {
+    getPosts,
+})(Posts)
 
-export default Posts

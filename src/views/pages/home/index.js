@@ -8,10 +8,13 @@ import Posts from "./Posts"
 import PostCreator from "./PostCreator"
 
 import "../../../assets/scss/pages/users-profile.scss"
+import postModel from "../../../firebase/postModel";
+import axios from "axios";
 
 class Index extends React.Component {
   state = {
-    isLoading: false
+    isLoading: false,
+    earned_score:''
   }
 
   toggleLoading = () => {
@@ -26,6 +29,28 @@ class Index extends React.Component {
     }, 2000)
   }
 
+  async componentDidMount() {
+
+    const Config = {
+      headers: {
+        Authorization: "Bearer " + localStorage.getItem("token")
+      }
+    }
+    var user_id = localStorage.getItem('user_id');
+    axios.get(global.config.server_url + "/getUserInfo?user_id=" + user_id, Config).then(response => {
+      this.setState({earned_score: response.data.earned_score});
+    })
+    // const Config = {
+    //     headers: {
+    //         Authorization: "Bearer " + localStorage.getItem("token")
+    //     }
+    // }
+    // await axios.get(global.config.server_url + "/posts", Config).then(response => {
+    //     console.log("------ this is init data -------");
+    //     console.log(response.data);
+    //     this.setState({ posts: response.data })
+    // })
+  }
   render() {
     return (
       <React.Fragment>
@@ -42,12 +67,12 @@ class Index extends React.Component {
           <div id="profile-info">
             <Row>
               <Col lg="3" md="12">
-                <AboutCard />
+                <AboutCard earned_score={this.state.earned_score}/>
                 {/*<SuggestedPages />*/}
               </Col>
               <Col lg="9" md="12">
                 <PostCreator />
-                <Posts />
+                <Posts filter={this.props.match.params.filter}/>
               </Col>
               {/*<Col lg="3" md="12">*/}
               {/*  <LatestPhotos />*/}

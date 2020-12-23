@@ -4,7 +4,6 @@ import { connect } from "react-redux"
 import classnames from "classnames"
 import {
   logoutWithJWT,
-  logoutWithFirebase
 } from "../../../redux/actions/auth/loginActions"
 import NavbarBookmarks from "./NavbarBookmarks"
 import NavbarUser from "./NavbarUser"
@@ -96,7 +95,6 @@ const ThemeNavbar = props => {
                     : null
                 }
                 logoutWithJWT={props.logoutWithJWT}
-                logoutWithFirebase={props.logoutWithFirebase}
               />
             </div>
           </div>
@@ -114,5 +112,4 @@ const mapStateToProps = state => {
 
 export default connect(mapStateToProps, {
   logoutWithJWT,
-  logoutWithFirebase
 })(ThemeNavbar)

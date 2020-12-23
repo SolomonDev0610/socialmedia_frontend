@@ -327,7 +327,7 @@ class AppRouter extends React.Component {
           <AppRoute path="/tables/react-tables" component={ReactTables} />
           <AppRoute path="/tables/agGrid" component={Aggrid} />
           <AppRoute path="/tables/data-tables" component={DataTable} />
-          <AppRoute path="/pages/home" component={home} />
+          <AppRoute path="/pages/home/:filter" component={home} />
           <AppRoute path="/pages/faq" component={faq} />
           <AppRoute
             path="/pages/knowledge-base"
@@ -397,7 +397,7 @@ class AppRouter extends React.Component {
           <AppRoute path="/app/AllDocuments" component={AllDocuments} />
           <AppRoute path="/app/contractTemplate" component={TemplateContract} />
           <AppRoute path="/app/user/edit/:id/:tab" component={userEdit} />
-          <AppRoute path="/app/user/view" component={userView} />
+          <AppRoute path="/app/user/view/:id" component={userView} />
           <AppRoute path="/charts/apex" component={apex} />
           <AppRoute path="/charts/chartjs" component={chartjs} />
           <AppRoute path="/charts/recharts" component={extreme} />

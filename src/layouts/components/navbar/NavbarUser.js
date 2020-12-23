@@ -8,7 +8,7 @@ import {
   DropdownItem,
   DropdownToggle,
   Media,
-  Badge
+  Badge, Input
 } from "reactstrap"
 import PerfectScrollbar from "react-perfect-scrollbar"
 import axios from "axios"
@@ -19,6 +19,11 @@ import Autocomplete from "../../../components/@vuexy/autoComplete/AutoCompleteCo
 import { history } from "../../../history"
 import { IntlContext } from "../../../utility/context/Internationalization"
 import defaultImage from "../../../../src/assets/img/profile/default_profile.jpg"
+import {
+  getPosts,
+  searchPost
+} from "../../../redux/actions/post/index"
+import {connect} from "react-redux";
 
 const handleNavigation = (e, path) => {
   e.preventDefault()
@@ -56,6 +61,7 @@ const UserDropdown = props => {
 
 class NavbarUser extends React.PureComponent {
   state = {
+    searchText: '',
     navbarSearch: false,
     langDropdown: false,
     shoppingCart: [
@@ -126,14 +132,12 @@ class NavbarUser extends React.PureComponent {
   }
 
   componentDidMount() {
-    axios.get("/api/main-search/data").then(({ data }) => {
-      this.setState({ suggestions: data.searchResult })
-    })
+    this.handleKeyPress = this.handleKeyPress.bind(this);
   }
 
   handleNavbarSearch = () => {
     this.setState({
-      navbarSearch: !this.state.navbarSearch
+      navbarSearch: true
     })
   }
 
@@ -149,8 +153,16 @@ class NavbarUser extends React.PureComponent {
 
   handleLangDropdown = () =>
     this.setState({ langDropdown: !this.state.langDropdown })
+  async handleKeyPress(event) {
+    if (event.charCode === 13) {
+      this.setState({navbarSearch:false});
+      await this.props.searchPost(event.target.value);
 
-  render() {
+      history.push("/pages/home/search");
+    }
+  }
+
+    render() {
     this.state.shoppingCart.map(item => {
       return (
         <div className="cart-item" key={item.id}>
@@ -196,74 +208,6 @@ class NavbarUser extends React.PureComponent {
 
     return (
       <ul className="nav navbar-nav navbar-nav-user float-right">
-        <IntlContext.Consumer>
-          {context => {
-            let langArr = {
-              "en" : "English",
-              "de" : "German",
-              "fr" : "French",
-              "pt" : "Portuguese"
-            }
-            return (
-              <Dropdown
-                tag="li"
-                className="dropdown-language nav-item"
-                isOpen={this.state.langDropdown}
-                toggle={this.handleLangDropdown}
-                data-tour="language"
-              >
-                <DropdownToggle
-                  tag="a"
-                  className="nav-link"
-                >
-                  <ReactCountryFlag
-                  className="country-flag"
-                    countryCode={
-                      context.state.locale === "en"
-                        ? "us"
-                        : context.state.locale
-                    }
-                    svg
-                  />
-                  <span className="d-sm-inline-block d-none text-capitalize align-middle ml-50">
-                    {langArr[context.state.locale]}
-                  </span>
-                </DropdownToggle>
-                <DropdownMenu right>
-                  <DropdownItem
-                    tag="a"
-                    onClick={e => context.switchLanguage("en")}
-                  >
-                    <ReactCountryFlag className="country-flag" countryCode="us" svg />
-                    <span className="ml-1">English</span>
-                  </DropdownItem>
-                  <DropdownItem
-                    tag="a"
-                    onClick={e => context.switchLanguage("fr")}
-                  >
-                    <ReactCountryFlag className="country-flag" countryCode="fr" svg />
-                    <span className="ml-1">French</span>
-                  </DropdownItem>
-                  <DropdownItem
-                    tag="a"
-                    onClick={e => context.switchLanguage("de")}
-                  >
-                    <ReactCountryFlag className="country-flag" countryCode="de" svg />
-                    <span className="ml-1">German</span>
-                  </DropdownItem>
-                  <DropdownItem
-                    tag="a"
-                    onClick={e => context.switchLanguage("pt")}
-                  >
-                    <ReactCountryFlag className="country-flag" countryCode="pt" svg />
-                    <span className="ml-1">Portuguese</span>
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-            )
-          }}
-        </IntlContext.Consumer>
-
         <NavItem className="nav-search" onClick={this.handleNavbarSearch}>
           <NavLink className="nav-link-search">
             <Icon.Search size={21} data-tour="search" />
@@ -277,105 +221,9 @@ class NavbarUser extends React.PureComponent {
             <div className="search-input-icon">
               <Icon.Search size={17} className="primary" />
             </div>
-            <Autocomplete
-              className="form-control"
-              suggestions={this.state.suggestions}
-              filterKey="title"
-              filterHeaderKey="groupTitle"
-              grouped={true}
-              placeholder="Explore Vuexy..."
-              autoFocus={true}
-              clearInput={this.state.navbarSearch}
-              externalClick={e => {
-                this.setState({ navbarSearch : false })
-              }}
-              onKeyDown={e => {
-                if (e.keyCode === 27 || e.keyCode === 13) {
-                  this.setState({
-                    navbarSearch: false
-                  })
-                  this.props.handleAppOverlay("")
-                }
-              }}
-              customRender={(
-                item,
-                i,
-                filteredData,
-                activeSuggestion,
-                onSuggestionItemClick,
-                onSuggestionItemHover
-              ) => {
-                const IconTag = Icon[item.icon ? item.icon : "X"]
-                return (
-                  <li
-                    className={classnames("suggestion-item", {
-                      active: filteredData.indexOf(item) === activeSuggestion
-                    })}
-                    key={i}
-                    onClick={e => onSuggestionItemClick(item.link, e)}
-                    onMouseEnter={() =>
-                      onSuggestionItemHover(filteredData.indexOf(item))
-                    }
-                  >
-                    <div
-                      className={classnames({
-                        "d-flex justify-content-between align-items-center":
-                          item.file || item.img
-                      })}
-                    >
-                      <div className="item-container d-flex">
-                        {item.icon ? (
-                          <IconTag size={17} />
-                        ) : item.file ? (
-                          <img
-                            src={item.file}
-                            height="36"
-                            width="28"
-                            alt={item.title}
-                          />
-                        ) : item.img ? (
-                          <img
-                            className="rounded-circle mt-25"
-                            src={item.img}
-                            height="28"
-                            width="28"
-                            alt={item.title}
-                          />
-                        ) : null}
-                        <div className="item-info ml-1">
-                          <p className="align-middle mb-0">{item.title}</p>
-                          {item.by || item.email ? (
-                            <small className="text-muted">
-                              {item.by
-                                ? item.by
-                                : item.email
-                                ? item.email
-                                : null}
-                            </small>
-                          ) : null}
-                        </div>
-                      </div>
-                      {item.size || item.date ? (
-                        <div className="meta-container">
-                          <small className="text-muted">
-                            {item.size
-                              ? item.size
-                              : item.date
-                              ? item.date
-                              : null}
-                          </small>
-                        </div>
-                      ) : null}
-                    </div>
-                  </li>
-                )
-              }}
-              onSuggestionsShown={userInput => {
-                if (this.state.navbarSearch) {
-                  this.props.handleAppOverlay(userInput)
-                }
-              }}
-            />
+            <Input type="text" id="basicInput" placeholder="Search Post..."
+                   onChange={(e) => this.setState({searchText: e.target.value})}
+                   onKeyPress={this.handleKeyPress} style={{height:'60px'}}/>
             <div className="search-input-close">
               <Icon.X
                 size={24}
@@ -390,65 +238,6 @@ class NavbarUser extends React.PureComponent {
             </div>
           </div>
         </NavItem>
-
-        {/*<UncontrolledDropdown*/}
-        {/*  tag="li"*/}
-        {/*  className="dropdown-notification nav-item"*/}
-        {/*>*/}
-        {/*  <DropdownToggle tag="a" className="nav-link nav-link-label">*/}
-        {/*    <Icon.Bell size={21} />*/}
-        {/*    <Badge pill color="primary" className="badge-up">*/}
-        {/*      {" "}*/}
-        {/*      1{" "}*/}
-        {/*    </Badge>*/}
-        {/*  </DropdownToggle>*/}
-        {/*  <DropdownMenu tag="ul" right className="dropdown-menu-media">*/}
-        {/*    <li className="dropdown-menu-header">*/}
-        {/*      <div className="dropdown-header mt-0">*/}
-        {/*        <h3 className="text-white">1 New</h3>*/}
-        {/*        <span className="notification-title">App Notifications</span>*/}
-        {/*      </div>*/}
-        {/*    </li>*/}
-        {/*    <PerfectScrollbar*/}
-        {/*      className="media-list overflow-hidden position-relative"*/}
-        {/*      options={{*/}
-        {/*        wheelPropagation: false*/}
-        {/*      }}*/}
-        {/*    >*/}
-        {/*      <div className="d-flex justify-content-between">*/}
-        {/*        <Media className="d-flex align-items-start">*/}
-        {/*          <Media left href="#">*/}
-        {/*            <Icon.PlusSquare*/}
-        {/*              className="font-medium-5 primary"*/}
-        {/*              size={21}*/}
-        {/*            />*/}
-        {/*          </Media>*/}
-        {/*          <Media body>*/}
-        {/*            <Media heading className="primary media-heading" tag="h6">*/}
-        {/*              1 New post*/}
-        {/*            </Media>*/}
-        {/*            <p className="notification-text">*/}
-        {/*              Are your going to check it?*/}
-        {/*            </p>*/}
-        {/*          </Media>*/}
-        {/*          <small>*/}
-        {/*            <time*/}
-        {/*              className="media-meta"*/}
-        {/*              dateTime="2015-06-11T18:29:20+08:00"*/}
-        {/*            >*/}
-        {/*              2 hours ago*/}
-        {/*            </time>*/}
-        {/*          </small>*/}
-        {/*        </Media>*/}
-        {/*      </div>*/}
-        {/*    </PerfectScrollbar>*/}
-        {/*    <li className="dropdown-menu-footer">*/}
-        {/*      <DropdownItem tag="a" className="p-1 text-center">*/}
-        {/*        <span className="align-middle">Read all notifications</span>*/}
-        {/*      </DropdownItem>*/}
-        {/*    </li>*/}
-        {/*  </DropdownMenu>*/}
-        {/*</UncontrolledDropdown>*/}
         <UncontrolledDropdown tag="li" className="dropdown-user nav-item">
           <DropdownToggle tag="a" className="nav-link dropdown-user-link">
             <div className="user-nav d-sm-flex d-none">
@@ -473,4 +262,13 @@ class NavbarUser extends React.PureComponent {
     )
   }
 }
-export default NavbarUser
+const mapStateToProps = state => {
+  return {
+    app: state.postApp
+  }
+}
+export default connect(mapStateToProps, {
+  getPosts,
+  searchPost
+})(NavbarUser)
+

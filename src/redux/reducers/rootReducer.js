@@ -3,6 +3,7 @@ import calenderReducer from "./calendar/"
 import emailReducer from "./email/"
 import chatReducer from "./chat/"
 import todoReducer from "./todo/"
+import postReducer from "./post/"
 import customizer from "./customizer/"
 import auth from "./auth/"
 import navbar from "./navbar/Index"
@@ -12,6 +13,7 @@ const rootReducer = combineReducers({
   calendar: calenderReducer,
   emailApp: emailReducer,
   todoApp: todoReducer,
+  postApp: postReducer,
   chatApp: chatReducer,
   customizer: customizer,
   auth: auth,

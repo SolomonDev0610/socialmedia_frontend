@@ -22,7 +22,7 @@ import defaultImage from "../../../../../src/assets/img/profile/default_profile.
 import republican_img from "../../../../assets/img/logo/republican_logo.png";
 import democratic_img from "../../../../assets/img/logo/democratic_logo.png";
 
-function UserView() {
+function UserView({match}) {
     const [profileImage, setProfileImage] = useState(userImg);
     const [username, setUsername] = useState(null);
     const [politicalParty, setPoliticalParty] = useState(null);
@@ -79,7 +79,11 @@ function UserView() {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
-        axios.get(global.config.server_url + "/getUserInfo?user_id=" + localStorage.getItem("user_id"), Config).then(response => {
+        var user_id = match.params.id;
+        if(user_id == "main")
+            user_id = localStorage.getItem('user_id');
+
+        axios.get(global.config.server_url + "/getUserInfo?user_id=" + user_id, Config).then(response => {
             console.log(response.data);
             setProfileImage(response.data.image);
             setUsername(response.data.username);
@@ -109,12 +113,14 @@ function UserView() {
                                         height="112"
                                         width="112"
                                     />
-                                    <div>
-                                        <input {...getInputProps()} />
-                                        <Button.Ripple color="primary" outline className="my-1" onClick={open}>
-                                            change profile picture.
-                                        </Button.Ripple>
-                                    </div>
+                                    {match.params.id == "main" &&
+                                        <div>
+                                            <input {...getInputProps()} />
+                                            <Button.Ripple color="primary" outline className="my-1" onClick={open}>
+                                                change profile picture.
+                                            </Button.Ripple>
+                                        </div>
+                                    }
                                 </Col>
                                 <Col md="4" sm="12">
                                     <Row>
@@ -159,9 +165,11 @@ function UserView() {
                                             </div>
                                         </FormGroup>
                                     </Row>
-                                    <Button.Ripple className="mr-1" color="primary" onClick={onSave}>
-                                        Save Profile
-                                    </Button.Ripple>
+                                    {match.params.id == "main" &&
+                                        <Button.Ripple className="mr-1" color="primary" onClick={onSave}>
+                                            Save Profile
+                                        </Button.Ripple>
+                                    }
                                 </Col>
                                 <Col md="4" sm="12" style={{paddingTop:'30px'}}>
                                     {politicalParty == 1 &&

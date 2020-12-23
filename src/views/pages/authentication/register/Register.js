@@ -12,8 +12,6 @@ import {
   TabContent,
   TabPane
 } from "reactstrap"
-import classnames from "classnames"
-import RegisterFirebase from "./RegisterFirebase"
 import RegisterJWT from "./RegisterJWT"
 import registerImg from "../../../../assets/img/pages/register.jpg"
 import "../../../../assets/scss/pages/authentication.scss"

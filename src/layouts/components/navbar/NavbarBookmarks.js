@@ -36,8 +36,8 @@ class NavbarBookmarks extends React.PureComponent {
     isStarred: false,
     suggestions: [],
     starredItems: [
-        {target:'home',link:'/pages/home',title:'Home'},
-        {target:'profile',link:'/app/user/view',title:'Profile'}
+        {target:'home',link:'/pages/home/main',title:'Home'},
+        {target:'profile',link:'/app/user/view/main',title:'Profile'}
     ]
   }
 

@@ -22,7 +22,7 @@ class AboutCard extends React.Component {
           </div>
           <div className="mt-1">
             <h6 className="mb-0">Total Earned Points:</h6>
-            <p>5012</p>
+            <p>{this.props.earned_score? this.props.earned_score : 0}</p>
           </div>
           <div style={{width:'100%',textAlign:'center'}}>
             <img
