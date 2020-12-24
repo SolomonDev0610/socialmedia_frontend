@@ -378,7 +378,11 @@ class Posts extends React.Component {
                                 <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                     {comment.point}
                                 <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
-                                <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>reply</span>
+                                {
+                                    localStorage.getItem("political_party") != comment.political_party_id &&
+                                    <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>reply</span>
+                                }
+
                             </div>
                         </div>
                         {comment.child_count != null && comment.child_count > 0 &&
@@ -626,14 +630,29 @@ class Posts extends React.Component {
                                         });
                                     }
                                     if(post_point == null || post_point.total_point == 0){
-                                        return <div style={{
+                                        return <>
+                                            <div style={{
                                                 display: 'inline-block',
                                                 color: '#ffffff',
                                                 fontWeight: 'bold',
                                                 paddingTop: '10px',
                                                 height: '40px',
-                                                width: '100%',
-                                                background: post.political_party_id == 1?'red':'blue'}}>100%</div>;
+                                                width: '50%',
+                                                background: 'red'}}>
+                                                50%
+                                            </div>
+                                            <div style={{
+                                                display: 'inline-block',
+                                                color: '#ffffff',
+                                                fontWeight: 'bold',
+                                                paddingTop: '10px',
+                                                height: '40px',
+                                                width: '50%',
+                                                background: 'blue'
+                                            }}>
+                                                50%
+                                            </div>
+                                        </>
                                     }else{
                                         var point1 = Math.floor((post_point.point1/post_point.total_point) * 100);
                                         var point2 = 100 - point1;
@@ -730,7 +749,12 @@ class Posts extends React.Component {
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                             {comment.point}
                                             <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
-                                            <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>reply</span>
+                                            { localStorage.getItem("political_party") != comment.political_party_id &&
+                                                <span style={{cursor:'pointer', fontWeight:'bold'}}
+                                                      onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>
+                                                    reply
+                                                </span>
+                                            }
                                         </div>
                                     </div>
                                     {comment.child_count != null && comment.child_count > 0 &&

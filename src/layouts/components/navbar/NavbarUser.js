@@ -221,7 +221,7 @@ class NavbarUser extends React.PureComponent {
             <div className="search-input-icon">
               <Icon.Search size={17} className="primary" />
             </div>
-            <Input type="text" id="basicInput" placeholder="Search Post..."
+            <Input type="text" id="basicInput" placeholder="Search Posts"
                    onChange={(e) => this.setState({searchText: e.target.value})}
                    onKeyPress={this.handleKeyPress} style={{height:'60px'}}/>
             <div className="search-input-close">

@@ -161,7 +161,7 @@ function UserView({match}) {
                                                 fontWeight: 'bold',
                                                 color: '#626161'
                                             }}>
-                                                {totalPoint} Points Earned
+                                                {totalPoint? totalPoint: 0} points earned
                                             </div>
                                         </FormGroup>
                                     </Row>
