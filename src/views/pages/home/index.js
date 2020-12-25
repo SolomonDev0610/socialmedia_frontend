@@ -79,20 +79,20 @@ class Index extends React.Component {
               {/*  <Suggestions />*/}
               {/*</Col>*/}
             </Row>
-            <Row>
-              <Col sm="12" className="text-center">
-                <Button.Ripple
-                  color="primary"
-                  onClick={this.toggleLoading}
-                  className={`${
-                    this.state.isLoading ? "btn-loading" : ""
-                  } btn-load`}
-                >
-                  <Spinner color="primary" />
-                  Load More
-                </Button.Ripple>
-              </Col>
-            </Row>
+            {/*<Row>*/}
+            {/*  <Col sm="12" className="text-center">*/}
+            {/*    <Button.Ripple*/}
+            {/*      color="primary"*/}
+            {/*      onClick={this.toggleLoading}*/}
+            {/*      className={`${*/}
+            {/*        this.state.isLoading ? "btn-loading" : ""*/}
+            {/*      } btn-load`}*/}
+            {/*    >*/}
+            {/*      <Spinner color="primary" />*/}
+            {/*      Load More*/}
+            {/*    </Button.Ripple>*/}
+            {/*  </Col>*/}
+            {/*</Row>*/}
           </div>
         </div>
       </React.Fragment>

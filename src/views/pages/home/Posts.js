@@ -8,7 +8,7 @@ import {
     Button, ModalHeader, ModalBody, FormGroup, ModalFooter, Modal,
     DropdownToggle,
     DropdownMenu,
-    DropdownItem, UncontrolledButtonDropdown
+    DropdownItem, UncontrolledButtonDropdown, Col, Spinner, Row
 } from "reactstrap"
 import {Heart, ThumbsDown, ThumbsUp, CornerDownRight, ChevronLeft} from "react-feather"
 import profileImg from "../../../assets/img/profile/user-uploads/user-01.jpg"
@@ -319,6 +319,7 @@ class Posts extends React.Component {
             }, Config).then(response => {
 
                 waiterHide();
+                //---------- add comment -------------
                 var parent_id = component_state.reply_comment_id;
                 var local_opened_childcomment_ids = this.state.opened_childcomment_ids;
                 var local_opened_childcomments= this.state.opened_childcomments;
@@ -377,7 +378,7 @@ class Posts extends React.Component {
 
                 // close the modal after adding new comment
                 var modal_status = this.state.comment_modal;
-                this.setState({modal: !modal_status});
+                this.setState({comment_modal: !modal_status});
             }).catch(error => {
                 waiterHide();
                 console.log(error);
@@ -421,7 +422,7 @@ class Posts extends React.Component {
 
                 // close the modal after adding new comment
                 var modal_status = this.state.comment_modal;
-                this.setState({modal: !modal_status});
+                this.setState({comment_modal: !modal_status});
             }).catch(error => {
                 waiterHide();
                 console.log(error);
@@ -639,6 +640,7 @@ class Posts extends React.Component {
         );
     }
 
+    //--------- Up/Down Vote -------
     onUpVote(comment_id, depth, post_id, parent_id, comment_political_party){
         waiterShow();
         var add_point = 0;
@@ -794,6 +796,51 @@ class Posts extends React.Component {
             // current_post.point2 = point2;
             //
             // this.setState({posts: tmp_posts});
+        })
+    }
+
+    //--------- load more comments -------
+    loadingMoreComments(post_id, comment_count){
+        waiterShow();
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+        axios.get(global.config.server_url + "/loadMoreComments?post_id="+post_id + "&comment_count="+comment_count,
+            Config).then(response => {
+            waiterHide();
+            var tmp_posts = this.state.posts;
+            var selected_post = tmp_posts.find(item =>{
+                return item.id == post_id
+            });
+
+            selected_post.comments = [...selected_post.comments, ...response.data]
+            this.setState({posts: tmp_posts});
+        }).catch(error => {
+            waiterHide();
+            console.log(error);
+            toast.error("API Not Reply.")
+        })
+    }
+    //--------- load more posts -------
+    loadingMorePosts(){
+        waiterShow();
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+        axios.get(global.config.server_url + "/loadMorePosts?post_count="+this.state.posts.length,
+            Config).then(response => {
+            waiterHide();
+            var tmp_posts = this.state.posts;
+            tmp_posts = [...tmp_posts, ...response.data]
+            this.setState({posts: tmp_posts});
+        }).catch(error => {
+            waiterHide();
+            console.log(error);
+            toast.error("API Not Reply.")
         })
     }
     render() {
@@ -1067,11 +1114,28 @@ class Posts extends React.Component {
                                         this.state.opened_childcomment_ids.includes(comment.id) &&
                                         this.createChildComments(comment.id)
                                     }
-                            </>
+                                </>
                             ))}
+
+                            {post.comment_count > post.comments.length &&
+                                <Row>
+                                    <Col sm="12" className="text-center">
+                                        <Button.Ripple color="flat-primary" onClick={() => { this.loadingMoreComments(post.id, post.comments.length) }} style={{marginTop:'10px'}}>
+                                            Load More...
+                                        </Button.Ripple>
+                                    </Col>
+                                </Row>
+                            }
                         </CardBody>
                     </Card>
                 ))}
+                <Row>
+                    <Col sm="12" className="text-center">
+                        <Button.Ripple color="flat-primary" onClick={() => { this.loadingMorePosts() }} style={{marginTop:'10px'}}>
+                            Load More...
+                        </Button.Ripple>
+                    </Col>
+                </Row>
             </React.Fragment>
             <Modal
                 isOpen={this.state.comment_modal}
