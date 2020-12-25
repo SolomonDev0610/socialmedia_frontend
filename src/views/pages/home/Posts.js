@@ -5,7 +5,10 @@ import {
     UncontrolledTooltip,
     Input,
     Label,
-    Button, ModalHeader, ModalBody, FormGroup, ModalFooter, Modal
+    Button, ModalHeader, ModalBody, FormGroup, ModalFooter, Modal,
+    DropdownToggle,
+    DropdownMenu,
+    DropdownItem, UncontrolledButtonDropdown
 } from "reactstrap"
 import {Heart, ThumbsDown, ThumbsUp, CornerDownRight} from "react-feather"
 import profileImg from "../../../assets/img/profile/user-uploads/user-01.jpg"
@@ -48,7 +51,6 @@ class Posts extends React.Component {
         // Return null if the state hasn't changed
         return null
     }
-
     state = {
         postPoints:null,
         pageKind:'',
@@ -58,6 +60,7 @@ class Posts extends React.Component {
         posts: [],
         opened_childcomments : [],
         opened_childcomment_ids:[],
+        modal_kind: 'Add',
         modal: false,
         comment: '',
         reply_comment:'',
@@ -66,12 +69,10 @@ class Posts extends React.Component {
         reply_comment_depth:'',
         reply_comment_parent_id:''
     }
-
     onCreatePost = e => {
         e.preventDefault();
         this.submitPost(this.state);
     }
-
     submitPost (info){
         waiterShow();
         const Config = {
@@ -114,7 +115,6 @@ class Posts extends React.Component {
                 toast.error("Server process Fail");
             })
     }
-
     onCreateComment (post_id, political_party_id) {
         if(political_party_id != localStorage.getItem("political_party"))
             this.submitComment(this.state, post_id);
@@ -158,7 +158,6 @@ class Posts extends React.Component {
                 toast.error("Server process Fail");
             })
     }
-
     onGetAllPost(items) {
         let array = [];
         items.forEach((item) => {
@@ -174,9 +173,9 @@ class Posts extends React.Component {
         console.log(array);
         this.setState({postPoints: array});
     }
-
     async componentDidMount() {
         this.onGetAllPost = this.onGetAllPost.bind(this);
+        // this.removeComment = this.removeComment.bind(this);
 
         unsubscribe = postModel.getAll().onSnapshot(this.onGetAllPost); //Planed Reports count
         if(this.props.filter == "main")
@@ -196,7 +195,6 @@ class Posts extends React.Component {
         //     this.setState({ posts: response.data })
         // })
     }
-
     onShowChildComments(comment_id){
         waiterShow();
         var element_index = this.state.opened_childcomment_ids.indexOf(comment_id);
@@ -266,17 +264,27 @@ class Posts extends React.Component {
             });;
         }
     }
-    toggleModal = (comment_id, depth, post_id, parent_id, political_party_id) => {
-        if(political_party_id != localStorage.getItem("political_party")) {
+    toggleModal = (comment_id, depth, post_id, parent_id, political_party_id, kind) => {
+        if(kind == "Add"){
             this.setState(prevState => ({
                 modal: !prevState.modal,
+                modal_kind:'Add',
                 reply_comment_post_id: post_id,
                 reply_comment_id: comment_id,
                 reply_comment_depth: depth,
                 reply_comment_parent_id: parent_id
             }));
-        }else
-            this.setState({confirmAlert:true});
+        }else {
+            this.setState(prevState => ({
+                modal: !prevState.modal,
+                modal_kind:'Edit',
+                reply_comment_post_id: post_id,
+                reply_comment_id: comment_id,
+                reply_comment_depth: depth,
+                reply_comment_parent_id: parent_id
+            }));
+        }
+
     }
     onPostReplyComment = e => {
         e.preventDefault();
@@ -290,65 +298,164 @@ class Posts extends React.Component {
                 Authorization: "Bearer " + localStorage.getItem("token")
             }
         }
+        if(component_state.modal_kind == "Add"){
+            axios.post(global.config.server_url + "/comments",{
+                created_at: new Date(),
+                post_id: component_state.reply_comment_post_id,
+                parent_id:component_state.reply_comment_id,
+                comment: component_state.reply_comment,
+                user_id: localStorage.getItem("user_id"),
+                political_party_id: localStorage.getItem("political_party"),
+                depth: parseInt(component_state.reply_comment_depth) + 1,
+            }, Config).then(response => {
 
-        axios.post(global.config.server_url + "/comments",{
-            created_at: new Date(),
-            post_id: component_state.reply_comment_post_id,
-            parent_id:component_state.reply_comment_id,
-            comment: component_state.reply_comment,
-            user_id: localStorage.getItem("user_id"),
-            political_party_id: localStorage.getItem("political_party"),
-            depth: parseInt(component_state.reply_comment_depth) + 1,
-        }, Config).then(response => {
+                waiterHide();
+                var parent_id = component_state.reply_comment_id;
+                var local_opened_childcomment_ids = this.state.opened_childcomment_ids;
+                var local_opened_childcomments= this.state.opened_childcomments;
 
-            waiterHide();
-            var parent_id = component_state.reply_comment_id;
-            var local_opened_childcomment_ids = this.state.opened_childcomment_ids;
-            var local_opened_childcomments= this.state.opened_childcomments;
+                var parent_index = local_opened_childcomment_ids.indexOf(parent_id);
 
-            var parent_index = local_opened_childcomment_ids.indexOf(parent_id);
+                if(parent_index > -1){
+                    var parent_comment = local_opened_childcomments.find(child_comment =>{
+                        return child_comment.comment_id == parent_id
+                    });
+                    parent_comment['data'].unshift(response.data);
 
-            if(parent_index > -1){
-                var parent_comment = local_opened_childcomments.find(child_comment =>{
-                    return child_comment.comment_id == parent_id
-                });
-                parent_comment['data'].unshift(response.data);
+                }else{
+                    this.onShowChildComments(parent_id);
+                }
 
-            }else{
-                this.onShowChildComments(parent_id);
-            }
+                // ----------- change the reply count of the comment -----------
+                if(this.state.reply_comment_depth == 1){
+                    // change the child_count of comment by finding the comment(depth = 1) in the posts
 
-            // ----------- change the reply count of the comment -----------
-            if(this.state.reply_comment_depth == 1){
-                // change the child_count of comment by finding the comment(depth = 1) in the posts
+                    var selected_post = this.state.posts.find(item =>{
+                        return item.id == this.state.reply_comment_post_id
+                    });
 
-                var selected_post = this.state.posts.find(item =>{
-                    return item.id == this.state.reply_comment_post_id
-                });
-
-                var selected_comment = selected_post.comments.find(item=>{
-                    return item.id == this.state.reply_comment_id;
-                });
-                selected_comment.child_count = selected_comment.child_count + 1;
-
-            }else{
-
-                //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
-                var tmp_opened_childcomments = this.state.opened_childcomments;
-                var parent_comment = tmp_opened_childcomments.find(item=>{
-                    return item.comment_id == this.state.reply_comment_parent_id
-                });
-                if(parent_comment){
-                    var current_comment = parent_comment.data.find(item=>{
+                    var selected_comment = selected_post.comments.find(item=>{
                         return item.id == this.state.reply_comment_id;
                     });
-                    current_comment.child_count = current_comment.child_count + 1;
+                    selected_comment.child_count = selected_comment.child_count + 1;
+
+                }else{
+
+                    //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+                    var tmp_opened_childcomments = this.state.opened_childcomments;
+                    var parent_comment = tmp_opened_childcomments.find(item=>{
+                        return item.comment_id == this.state.reply_comment_parent_id
+                    });
+                    if(parent_comment){
+                        var current_comment = parent_comment.data.find(item=>{
+                            return item.id == this.state.reply_comment_id;
+                        });
+                        current_comment.child_count = current_comment.child_count + 1;
+                    }
+                }
+
+                // close the modal after adding new comment
+                var modal_status = this.state.modal;
+                this.setState({modal: !modal_status});
+            }).catch(error => {
+                waiterHide();
+                console.log(error);
+                toast.error("API Not Reply.")
+            })
+        }else{
+            axios.put(global.config.server_url + "/comments/"+component_state.reply_comment_id,{
+                created_at: new Date(),
+                comment_id:component_state.reply_comment_id,
+                comment: component_state.reply_comment,
+            }, Config).then(response => {
+                waiterHide();
+
+                // ----------- change the reply comment -----------
+                if(this.state.reply_comment_depth == 1){
+                    // change the child_count of comment by finding the comment(depth = 1) in the posts
+
+                    var selected_post = this.state.posts.find(item =>{
+                        return item.id == this.state.reply_comment_post_id
+                    });
+
+                    var selected_comment = selected_post.comments.find(item=>{
+                        return item.id == this.state.reply_comment_id;
+                    });
+                    selected_comment.comment = component_state.reply_comment;
+
+                }else{
+
+                    //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+                    var tmp_opened_childcomments = this.state.opened_childcomments;
+                    var parent_comment = tmp_opened_childcomments.find(item=>{
+                        return item.comment_id == this.state.reply_comment_parent_id
+                    });
+                    if(parent_comment){
+                        var current_comment = parent_comment.data.find(item=>{
+                            return item.id == this.state.reply_comment_id;
+                        });
+                        current_comment.comment = component_state.reply_comment;
+                    }
+                }
+
+                // close the modal after adding new comment
+                var modal_status = this.state.modal;
+                this.setState({modal: !modal_status});
+            }).catch(error => {
+                waiterHide();
+                console.log(error);
+                toast.error("API Not Reply.")
+            })
+        }
+    }
+    removeComment(comment_depth, post_id, comment_parent_id, comment_id){
+        waiterShow();
+        const Config = {
+            headers: {
+                Authorization: "Bearer " + localStorage.getItem("token")
+            }
+        }
+        axios.delete(global.config.server_url + "/comments/"+comment_id, Config).then(response => {
+            waiterHide();
+            var tmp_posts = this.state.posts;
+            var tmp_opened_childcomments = this.state.opened_childcomments;
+            //----------- remove the comment -----------
+            if(comment_depth == 1){
+                // change the child_count of comment by finding the comment(depth = 1) in the posts
+                var selected_post = tmp_posts.find(item =>{
+                    return item.id == post_id
+                });
+                var tmp_comments = selected_post.comments;
+                tmp_comments.splice(tmp_comments.findIndex(item => item.id == comment_id), 1);
+            }else{
+                //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+                var parent_comment = tmp_opened_childcomments.find(item=>{
+                    return item.comment_id == comment_parent_id
+                });
+                if(parent_comment){
+                    var tmp_comments = parent_comment.data;
+                    tmp_comments.splice(tmp_comments.findIndex(item => item.id == comment_id), 1)
                 }
             }
 
-            // close the modal after adding new comment
-            var modal_status = this.state.modal;
-            this.setState({modal: !modal_status});
+            // ----------- change the reply count of the comment -----------
+            if(comment_depth == 1){
+                // change the child_count of comment by finding the comment(depth = 1) in the posts
+                var selected_post = this.state.posts.find(item =>{
+                    return item.id == post_id
+                });
+                selected_post.comment_count = selected_post.comment_count - 1;
+            }else{
+                //as parent_comment belongs in opened_childcomments list, find the comment in the opened_childcomments
+                var parent_comment = tmp_opened_childcomments.find(item=>{
+                    return item.comment_id == comment_parent_id
+                });
+                
+                parent_comment.child_count = parent_comment.child_count - 1;
+            }
+
+            this.setState({posts: tmp_posts});
+            this.setState({opened_childcomments: tmp_opened_childcomments});
         }).catch(error => {
             waiterHide();
             console.log(error);
@@ -375,12 +482,40 @@ class Posts extends React.Component {
                                 <span className="font-small-2">
                                     {comment.comment}
                                 </span>
+                                {
+                                    localStorage.getItem("user_id") == comment.user_id &&
+                                    <UncontrolledButtonDropdown>
+                                        <DropdownToggle color="flat-dark" caret style={{
+                                            width: '30px',
+                                            height: '22px',
+                                            background: 'none',
+                                            padding: '5px'
+                                        }}>
+                                            <h3 style={{color: '#747373', marginTop: '-13px'}}>...</h3>
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem tag="a"
+                                                          onClick={()=>{
+                                                              this.setState({reply_comment:comment.comment});
+                                                              this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id, "Edit");
+                                                          }}>
+                                                Edit
+                                            </DropdownItem>
+                                            {(comment.child_count == null || comment.child_count  == 0) &&
+                                                <DropdownItem tag="a"
+                                                              onClick={() => {this.removeComment(comment.depth, comment.post_id, comment.parent_id, comment.id)}}>
+                                                    Remove
+                                                </DropdownItem>
+                                            }
+                                        </DropdownMenu>
+                                    </UncontrolledButtonDropdown>
+                                }
                                 <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                     {comment.point}
                                 <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                 {
                                     localStorage.getItem("political_party") != comment.political_party_id &&
-                                    <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>reply</span>
+                                    <span style={{cursor:'pointer', fontWeight:'bold'}} onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id, "Add")}}>reply</span>
                                 }
 
                             </div>
@@ -400,7 +535,6 @@ class Posts extends React.Component {
             </>
         );
     }
-
     onUpVote(comment_id, depth, post_id, parent_id, comment_political_party){
         waiterShow();
         var add_point = 0;
@@ -700,9 +834,12 @@ class Posts extends React.Component {
                                 />
                                 <Label for="add-comment">Add Comment</Label>
                             </fieldset>
-                            <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment(post.id, post.political_party_id)}>
-                                Post Comment
-                            </Button.Ripple>
+                            {
+                                localStorage.getItem('political_party') != post.political_party_id &&
+                                    <Button.Ripple size="sm" color="primary" className="mb-2" onClick={()=> this.onCreateComment(post.id, post.political_party_id)}>
+                                        Post Comment
+                                    </Button.Ripple>
+                            }
                             <div className="d-flex justify-content-start align-items-center mb-1">
                                 <div className="d-flex align-items-center">
                                     {post.comment_count? post.comment_count: 0} comments
@@ -746,12 +883,41 @@ class Posts extends React.Component {
                                             <span className="font-small-2">
                                               {comment.comment}
                                             </span>
+                                            {
+                                                localStorage.getItem("user_id") == comment.user_id &&
+                                                    <UncontrolledButtonDropdown>
+                                                        <DropdownToggle color="flat-dark" caret style={{
+                                                            width: '30px',
+                                                            height: '22px',
+                                                            background: 'none',
+                                                            padding: '5px'
+                                                        }}>
+                                                            <h3 style={{color: '#747373', marginTop: '-13px'}}>...</h3>
+                                                        </DropdownToggle>
+                                                        <DropdownMenu>
+                                                            <DropdownItem tag="a"
+                                                                          onClick={()=>{
+                                                                              this.setState({reply_comment:comment.comment});
+                                                                              this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id, "Edit");
+                                                                          }}>
+                                                                Edit
+                                                            </DropdownItem>
+                                                            {(comment.child_count == null || comment.child_count  == 0) &&
+                                                                <DropdownItem tag="a"
+                                                                              onClick={() => this.removeComment(comment.depth, comment.post_id, comment.parent_id, comment.id)}>
+                                                                    Remove
+                                                                </DropdownItem>
+                                                            }
+                                                        </DropdownMenu>
+                                                    </UncontrolledButtonDropdown>
+                                            }
+
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                             {comment.point}
                                             <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor:'pointer'}} onClick={()=>{this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
                                             { localStorage.getItem("political_party") != comment.political_party_id &&
                                                 <span style={{cursor:'pointer', fontWeight:'bold'}}
-                                                      onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}>
+                                                      onClick={()=>{this.toggleModal(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id, "Add")}}>
                                                     reply
                                                 </span>
                                             }
@@ -778,8 +944,8 @@ class Posts extends React.Component {
                     toggle={this.toggleModal}
                     className="modal-dialog-centered"
                 >
-                <ModalHeader toggle={this.toggleModal}>
-                        Add Comment
+                    <ModalHeader toggle={this.toggleModal}>
+                        {this.state.modal_kind} Comment
                     </ModalHeader>
                     <ModalBody>
                         <FormGroup>
@@ -789,6 +955,7 @@ class Posts extends React.Component {
                                 rows="5"
                                 placeholder="Add Comment"
                                 id="reply_comment"
+                                defaultValue={this.state.reply_comment}
                                 onChange={e=> this.setState({reply_comment:e.target.value})}
                             />
                         </FormGroup>
