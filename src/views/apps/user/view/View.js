@@ -126,13 +126,14 @@ function UserView({match}) {
                                     <Row>
                                         <FormGroup>
                                             <Label for="name">username</Label>
-                                            <Input
-                                                type="text"
-                                                defaultValue={username}
-                                                onChange={e => setUsername(e.target.value)}
-                                                id="name"
-                                                placeholder="Name"
-                                            />
+                                            <div style={{marginTop:'10px',fontWeight:'bold'}}>{username}</div>
+                                            {/*<Input*/}
+                                            {/*    type="text"*/}
+                                            {/*    defaultValue={username}*/}
+                                            {/*    onChange={e => setUsername(e.target.value)}*/}
+                                            {/*    id="name"*/}
+                                            {/*    placeholder="Name"*/}
+                                            {/*/>*/}
                                         </FormGroup>
                                     </Row>
                                     <Row>
@@ -165,11 +166,11 @@ function UserView({match}) {
                                             </div>
                                         </FormGroup>
                                     </Row>
-                                    {match.params.id == "main" &&
-                                        <Button.Ripple className="mr-1" color="primary" onClick={onSave}>
-                                            Save Profile
-                                        </Button.Ripple>
-                                    }
+                                    {/*{match.params.id == "main" &&*/}
+                                    {/*    <Button.Ripple className="mr-1" color="primary" onClick={onSave}>*/}
+                                    {/*        Save Profile*/}
+                                    {/*    </Button.Ripple>*/}
+                                    {/*}*/}
                                 </Col>
                                 <Col md="4" sm="12" style={{paddingTop:'30px'}}>
                                     {politicalParty == 1 &&

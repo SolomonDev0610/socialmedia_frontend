@@ -35,7 +35,7 @@ const UserDropdown = props => {
     <DropdownMenu right>
       <DropdownItem
         tag="a"
-        href="/vote_socialmedia/pages/login"
+        href="/pages/login"
         onClick={e => {
           e.preventDefault()
             const provider = props.loggedInWith
