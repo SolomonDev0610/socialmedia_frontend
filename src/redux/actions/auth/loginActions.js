@@ -36,9 +36,9 @@ export const loginWithJWT = user => {
       .catch(error => {
         console.log(error)
         if (error.response && error.response.status)
-          toast.error("Email ou mot de passe incorrect.")
+          toast.error("Incorrect email or password.")
         else
-          toast.error("API injoignable.")
+          toast.error("Server Error.")
       });
   }
 }

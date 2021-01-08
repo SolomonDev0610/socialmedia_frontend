@@ -47,9 +47,8 @@ class Login extends React.Component {
               </Col>
               <Col lg="6" md="12" className="p-0">
                 <Card className="rounded-0 mb-0 px-2 login-tabs-container">
-                  <CardHeader className="pb-1" style={{marginTop:'80px'}}>
+                  <CardHeader className="pb-1" style={{marginTop:'100px'}}>
                     <CardTitle>
-                      <h4 className="mb-0">Do you identify yourself?</h4>
                     </CardTitle>
                   </CardHeader>
                   <TabContent activeTab={this.state.activeTab}>

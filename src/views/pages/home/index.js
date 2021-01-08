@@ -10,6 +10,7 @@ import PostCreator from "./PostCreator"
 import "../../../assets/scss/pages/users-profile.scss"
 import postModel from "../../../firebase/postModel";
 import axios from "axios";
+import {toast} from "react-toastify";
 
 class Index extends React.Component {
   state = {
@@ -39,6 +40,8 @@ class Index extends React.Component {
     var user_id = localStorage.getItem('user_id');
     axios.get(global.config.server_url + "/getUserInfo?user_id=" + user_id, Config).then(response => {
       this.setState({earned_score: response.data.earned_score});
+    }).catch(function(error) {
+      window.location.href = "/pages/login/";
     })
     // const Config = {
     //     headers: {

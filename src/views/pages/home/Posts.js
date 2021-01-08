@@ -186,9 +186,12 @@ class Posts extends React.Component {
         unsubscribe = postModel.getAll().onSnapshot(this.onGetAllPost); //Planed Reports count
         if(this.props.filter == "main")
             await this.props.getPosts();
-
+        let tmp_posts = this.props.app.post.posts;
+        tmp_posts.forEach(post => {
+            post.comments = post.comments.sort((a, b) => (a.point < b.point) ? 1 : -1);
+        });
         this.setState({
-            posts: this.props.app.post.posts,
+            posts: tmp_posts,
         })
         // const Config = {
         //     headers: {
@@ -319,6 +322,7 @@ class Posts extends React.Component {
 
                 waiterHide();
                 //---------- add comment -------------
+                component_state.reply_comment = "";
                 var parent_id = component_state.reply_comment_id;
                 var local_opened_childcomment_ids = this.state.opened_childcomment_ids;
                 var local_opened_childcomments= this.state.opened_childcomments;
@@ -390,7 +394,7 @@ class Posts extends React.Component {
                 comment: component_state.reply_comment,
             }, Config).then(response => {
                 waiterHide();
-
+                component_state.reply_comment = "";
                 // ----------- change the reply comment -----------
                 if(this.state.reply_comment_depth == 1){
                     // change the child_count of comment by finding the comment(depth = 1) in the posts
@@ -614,7 +618,7 @@ class Posts extends React.Component {
                                     </UncontrolledButtonDropdown>
                                 }
                                 <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
-                                    {comment.point > 0? comment.point: ''}
+                                    {comment.point != null? comment.point: 0}
                                 {
                                     localStorage.getItem("political_party") == comment.political_party_id &&
                                     <ThumbsDown className="mr-50" size={18}
@@ -1150,7 +1154,7 @@ class Posts extends React.Component {
                                             }
 
                                             <ThumbsUp className="mr-50" size={18} style={{marginLeft: '15px', cursor:'pointer'}} onClick={()=>{this.onUpVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}/>
-                                            {comment.point > 0? comment.point: ''}
+                                            {comment.point != null ? comment.point: 0}
                                             {localStorage.getItem("political_party") == comment.political_party_id &&
                                                 <ThumbsDown className="mr-50" size={18} style={{marginLeft: '5px', cursor: 'pointer'}} onClick={() => {
                                                     this.onDownVote(comment.id, comment.depth, comment.post_id, comment.parent_id, comment.political_party_id)}}

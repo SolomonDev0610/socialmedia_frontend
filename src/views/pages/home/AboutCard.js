@@ -10,7 +10,6 @@ class AboutCard extends React.Component {
       <Card>
         <CardHeader>
           <CardTitle>About</CardTitle>
-          <MoreHorizontal size={15} className="cursor-pointer" />
         </CardHeader>
         <CardBody>
           <p style={{color:localStorage.getItem("political_party") == 1?"red":"blue"}}>

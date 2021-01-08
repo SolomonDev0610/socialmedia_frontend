@@ -140,16 +140,10 @@ function UserView({match}) {
                                         <FormGroup>
                                             <Label for="name">Political Party</Label>
                                             { politicalParty == 1 &&
-                                                <CustomInput type="select" name="political_party"
-                                                             defaultValue={politicalParty}>
-                                                    <option value="1">Republican</option>
-                                                </CustomInput>
+                                                <h2 style={{marginTop:'10px'}}>  Republican </h2>
                                             }
                                             { politicalParty == 2 &&
-                                            <CustomInput type="select" name="political_party"
-                                                         defaultValue={politicalParty}>
-                                                <option value="2">Democrat</option>
-                                            </CustomInput>
+                                                <h2 style={{marginTop:'10px'}}>  Democrat </h2>
                                             }
                                         </FormGroup>
                                     </Row>
